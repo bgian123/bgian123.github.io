@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.16)  17 JUL 2026 11:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.16)  17 JUL 2026 11:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -82,10 +82,10 @@ Underfull \hbox (badness 10000) in paragraph at lines 164--168
 
 [3] ) 
 Here is how much of TeX's memory you used:
- 539 strings out of 477476
- 9573 string characters out of 5824244
+ 538 strings out of 477476
+ 9565 string characters out of 5824244
  1860388 words of memory out of 5000000
- 20858 multiletter control sequences out of 15000+600000
+ 20857 multiletter control sequences out of 15000+600000
  514481 words of font info for 39 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  48i,8n,52p,769b,182s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -99,7 +99,7 @@ exmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023basi
 c/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2023ba
 sic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2023
 basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on bgres.pdf (3 pages, 127103 bytes).
+Output written on bgres.pdf (3 pages, 126992 bytes).
 PDF statistics:
  59 PDF objects out of 1000 (max. 8388607)
  36 compressed objects within 1 object stream
