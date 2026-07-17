@@ -1,0 +1,207 @@
+/* ---------------------------------------------------------------
+   Blaize Giangiulio — job market site
+   Minimal, journal-set style. No dependencies, system fonts only.
+   Accent color: deep navy (--accent). Change once, applies everywhere.
+   --------------------------------------------------------------- */
+
+:root {
+  --ink: #1c1c1c;
+  --muted: #5a5a5a;
+  --accent: #07294D;      /* Drexel navy */
+  --gold: #FFC600;        /* Drexel gold */
+  --rule: #c9c9c4;
+  --paper: #ffffff;
+  --serif: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+  --sans: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.06rem;
+  line-height: 1.65;
+}
+
+.page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+/* --- Masthead ------------------------------------------------- */
+
+header.masthead { text-align: center; margin-bottom: 2.25rem; }
+
+.masthead h1 {
+  font-weight: 500;
+  font-size: 2.1rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.35rem;
+}
+
+.masthead .affiliation {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1.1rem;
+}
+
+/* double hairline rule, journal-masthead style */
+.masthead .rule {
+  border: 0;
+  border-top: 1px solid var(--ink);
+  margin: 0 0 3px;
+}
+.masthead .rule.thin {
+  border-top: 2px solid var(--gold);
+  margin: 0 0 1.1rem;
+}
+
+nav {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+nav a {
+  color: var(--ink);
+  text-decoration: none;
+  margin: 0 0.9rem;
+  padding-bottom: 2px;
+}
+nav a:hover, nav a:focus-visible { color: var(--accent); }
+nav a.current { color: var(--accent); border-bottom: 2px solid var(--accent); }
+nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* --- Body ----------------------------------------------------- */
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.3rem;
+  margin: 2.4rem 0 1rem;
+}
+
+a { color: var(--accent); }
+a:hover { text-decoration-thickness: 2px; }
+
+.intro {
+  display: flex;
+  gap: 1.75rem;
+  align-items: flex-start;
+  margin-top: 0.5rem;
+}
+
+.intro img, .photo-placeholder {
+  width: 165px;
+  height: 205px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--rule);
+}
+
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: #f5f5f2;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.contact {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.contact strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* --- Papers --------------------------------------------------- */
+
+.paper { margin-bottom: 1.8rem; }
+
+.paper .title {
+  font-weight: 600;
+  font-size: 1.08rem;
+  margin: 0 0 0.15rem;
+}
+
+.paper .tag {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--gold);
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 2px;
+  vertical-align: 2px;
+  margin-left: 0.4rem;
+}
+
+.paper .meta {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 0.45rem;
+}
+
+.paper .links {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+.paper .links a { margin-right: 0.9rem; }
+
+details.abstract summary {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 0.3rem;
+}
+details.abstract p {
+  margin: 0.3rem 0 0;
+  font-size: 0.98rem;
+  color: #333;
+}
+
+/* --- Footer --------------------------------------------------- */
+
+footer {
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .intro { flex-direction: column; align-items: center; text-align: center; }
+  .masthead h1 { font-size: 1.7rem; }
+  nav a { margin: 0 0.5rem; }
+}
