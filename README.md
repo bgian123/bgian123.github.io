@@ -7,22 +7,12 @@
 - `teaching.html` — instructor experience, evals, referee service
 - `style.css` — all styling (change `--accent` at the top to recolor the whole site)
 
-## Before going live: fill in the placeholders
+## Updating
 
-Email, office address, titles, and abstracts are already filled in.
-Search each HTML file for `[` — every remaining placeholder is bracketed.
-
-1. `photo.jpg` — professional headshot, ~500×620px. Replace the
-   `photo-placeholder` div in `index.html` with the `<img>` tag shown in the
-   comment next to it.
-2. `cv.pdf` — drop your CV in the site root
-3. Paper PDFs — create a `papers/` folder: `jmp.pdf`, `jmp-slides.pdf`,
-   `auto-tariffs.pdf`, `tv-distance.pdf` (or rename links to match)
-4. References/committee names on the home page
-5. Teaching terms and evaluation numbers (`teaching.html`), plus `evals.pdf`
-   if you post full evaluations
-6. TA section on `teaching.html` — fill in or delete
-7. Work-in-progress section on `research.html` — fill in or delete
+- CV source: `cv-src/bgres.tex`. After editing, compile with
+  `cd cv-src && pdflatex bgres.tex && cp bgres.pdf ../cv.pdf`.
+- Paper PDFs linked from the site live in `papers/`.
+- Any change to the CV should also be made on the site, and vice versa.
 
 ## Deploy to GitHub Pages (free, ~5 minutes)
 

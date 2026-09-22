@@ -14,12 +14,12 @@ TARGETS = ["index.html", "research.html", "cv-src/bgres.tex"]
 
 def to_html(t):
     t = t.replace("&", "&amp;").replace("–", "&ndash;").replace("—", "&mdash;")
-    t = t.replace("(N+1)", "<em>(N+1)</em>")
+    t = t.replace("(N+1)", "<em>(N+1)</em>").replace("−", "&minus;")
     return textwrap.fill(t, 78, initial_indent=" " * 10, subsequent_indent=" " * 10)
 
 def to_tex(t):
     t = t.replace("$", r"\$").replace("%", r"\%").replace("&", r"\&")
-    t = t.replace("(N+1)", "$(N+1)$").replace("–", "--").replace("—", "---")
+    t = t.replace("(N+1)", "$(N+1)$").replace("–", "--").replace("—", "---").replace("−", "$-$")
     return t
 
 for src in sorted((ROOT / "abstracts").glob("*.txt")):

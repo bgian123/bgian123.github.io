@@ -1,6 +1,7 @@
 \documentclass[margin,line]{res}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{needspace}
 \usepackage[hidelinks]{hyperref}
 \oddsidemargin -.5in
 \evensidemargin -.5in
@@ -13,6 +14,7 @@
 
 % Paper entry: {title}{year}{authors line}
 \newcommand{\paper}[3]{%
+  \needspace{5\baselineskip}%
   {\em ``#1''} \hfill {\bf #2}\\
   {\small #3}\\}
 
@@ -65,11 +67,15 @@ Studies the spillover effects of the 2025 ``Liberation Day'' automotive tariffs 
 
 \entrygap
 \paper{Logistic Distance}{2025--2026}{with Peter Herman, Serge Shikher, and Yoto V. Yotov}
-Constructs a transportation-network-informed distance measure that incorporates realistic city-to-city routing into the Mayer and Zignago (2011) population-weighted distance formula, making bilateral distances responsive to infrastructure shocks. Applies the measure to the 2023 Red Sea crisis as a natural experiment, estimating a saturated gravity model in an event-study framework on monthly bilateral trade data.
+% abstract:logistic-distance
+This paper employs geospatial network data to construct a novel transportation-network-informed distance variable that integrates realistic city-to-city freight routing into the Mayer and Zignago (2011) population-weighted distance formula, rendering bilateral distances that are meaningfully responsive to infrastructure shocks. Using the 2023 Red Sea crisis as a natural experiment, we estimate a saturated gravity model in an event-study framework with importer--exporter--time and country-pair fixed effects on monthly bilateral trade data. Treated country pairs are those whose network-informed distance rises meaningfully following the closure of the Bab el-Mandeb Strait, identified against a control group of unaffected pairs.
+% /abstract:logistic-distance
 
 \entrygap
-\paper{Time-Varying Distance and Trade}{2025--2026}{with Peter Herman, Serge Shikher, and Yoto V. Yotov}
-Extends the Mayer and Zignago (2011) population-weighted distance formula to allow bilateral distances to evolve over time using annual city-level population data from the mid-twentieth century onward, and examines within a structural gravity framework how long-run shifts in the spatial distribution of population have shaped bilateral trade patterns.
+\paper{Dynamic Distance, Trade, and Welfare}{2025--2026}{with James E. Anderson, Peter Herman, Serge Shikher, and Yoto V. Yotov}
+% abstract:dynamic-distance
+We introduce a time-varying measure of distance between and within countries and demonstrate its usefulness in international economics applications. Built from annual population data for 6,162 cities in 235 countries from 1950 to 2024, the measure improves gravity estimation by enabling theoretically consistent distance estimates in the presence of bilateral fixed effects, mitigating endogeneity concerns related to unobservable factors. We confirm the previous finding that the effects of distance have fallen over time and show that this decline has been driven primarily by affluent countries. Within a general equilibrium setting, we demonstrate that a counterfactual reversion to mid-century distances produces large welfare changes ranging from $-$1.4\% to +2.4\%, suggesting that geographic population shifts since the mid-twentieth century have benefited some countries and hurt others. U.S. migration to the South and West has had particularly large impacts on trade and welfare in Canada and Mexico.
+% /abstract:dynamic-distance
 
 %-----------------------------------------------------------------
 \section{\sc Work in\\ Progress}
@@ -78,7 +84,7 @@ Asks whether state used-car lemon laws, which often require dealers to attach a 
 
 %-----------------------------------------------------------------
 \section{\sc Presentations}
-Philadelphia Trade Group, 2025\\
+``Logistic Distance,'' Philadelphia Trade Group, 2025\\
 Drexel Sanctions Workshop (participant), 2024
 
 %-----------------------------------------------------------------
@@ -90,6 +96,7 @@ Dragon Fellowship, Drexel University \hfill 2022--present\\
 Master's Teaching Assistantship, McGill University \hfill 2020--2021
 
 %-----------------------------------------------------------------
+\needspace{6\baselineskip}
 \section{\sc Teaching\\ Experience}
 {\bf Instructor of Record}, Drexel University\\
 Principles of Microeconomics (ECON 201) \hfill Fall 2024, Fall 2025, Fall 2026\\
@@ -98,21 +105,25 @@ Intermediate Microeconomics (ECON 301) \hfill Spring 2026
 
 \entrygap
 {\bf Teaching Assistant}\\
-Introductory Microeconomics, Drexel University \hfill 2022--2024\\
+Empirical International Trade (ECON 961, Ph.D.), Drexel University \hfill Winter 2025\\
+Principles of Microeconomics (ECON 201), Drexel University \hfill Winter 2023--present\\
 Introductory Macroeconomics, McGill University \hfill 2020--2021
 
 %-----------------------------------------------------------------
 \section{\sc Research\\ Experience}
+\needspace{5\baselineskip}
 {\bf Center for Global Policy Analysis}, Drexel University\\
 \role{Fellow}{2025--present}
 Contributed to the development of the large-scale EQUIP trade simulation model; developed a geospatially founded logistic distance measure; built distributed estimation pipelines on HPC clusters (Slurm), scaling to 5,000+ PPML regressions with high-dimensional fixed effects.
 
 \entrygap
+\needspace{5\baselineskip}
 {\bf U.S. International Trade Commission}, Washington, DC\\
 \role{Student Trainee (Economist)}{2024--2025}
 Studied the effect of population movements on international trade flows in a structural gravity framework; used geospatial data and graph-theoretic methods in Python to predict shipping routes and construct a new logistic distance variable; provided technical assistance to USTR.
 
 \entrygap
+\needspace{5\baselineskip}
 {\bf Drexel University}\\
 \role{Research Assistant to Yoto V. Yotov}{2022--present}
 Assembled, cleaned, and analyzed data from a wide range of trade sources in R and Stata; prepared summaries of trade-policy research.

@@ -5,3 +5,5 @@ cv-src/*.fls
 cv-src/*.fdb_latexmk
 cv-src/*.out
 cv-src/tmp*.tmp
+cv-src/*.synctex.gz
+cv-src/*.log
