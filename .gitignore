@@ -1,2 +1,7 @@
 .DS_Store
 .claude/
+cv-src/*.aux
+cv-src/*.fls
+cv-src/*.fdb_latexmk
+cv-src/*.out
+cv-src/tmp*.tmp

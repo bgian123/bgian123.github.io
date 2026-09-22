@@ -1,182 +1,138 @@
 \documentclass[margin,line]{res}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[hidelinks]{hyperref}
 \oddsidemargin -.5in
 \evensidemargin -.5in
 \textwidth=6.0in
 \itemsep=0in
 \parsep=0in
-% if using pdflatex:
-%\setlength{\pdfpagewidth}{\paperwidth}
-%\setlength{\pdfpageheight}{\paperheight}
 
-\newenvironment{list1}{
-  \begin{list}{\ding{113}}{%
-      \setlength{\itemsep}{0in}
-      \setlength{\parsep}{0in} \setlength{\parskip}{0in}
-      \setlength{\topsep}{0in} \setlength{\partopsep}{0in}
-      \setlength{\leftmargin}{0.17in}}}{\end{list}}
-\newenvironment{list2}{
-  \begin{list}{$\bullet$}{%
-      \setlength{\itemsep}{0in}
-      \setlength{\parsep}{0in} \setlength{\parskip}{0in}
-      \setlength{\topsep}{0in} \setlength{\partopsep}{0in}
-      \setlength{\leftmargin}{0.2in}}}{\end{list}}
+% Consistent spacing between entries
+\newcommand{\entrygap}{\vspace{.09in}}
 
+% Paper entry: {title}{year}{authors line}
+\newcommand{\paper}[3]{%
+  {\em ``#1''} \hfill {\bf #2}\\
+  {\small #3}\\}
+
+% Position entry: {title}{dates}
+\newcommand{\role}[2]{{\em #1} \hfill {\bf #2}\\}
 
 \begin{document}
 
 \name{Blaize Giangiulio \vspace*{.1in}}
 
 \begin{resume}
-\section{\sc Contact Information}
+
+%-----------------------------------------------------------------
+\section{\sc Contact\\ Information}
 \vspace{.05in}
-\begin{tabular}{@{}p{2in}p{4in}}
-Gerri C. LeBow Hall, Office 1030    & {\it Phone:}  (856) 381-2348 \\
-School of Economics & {\it E-mail:}  bg654@drexel.edu   \\
-Drexel University \\
-Philadelphia, PA 19104 USA\\
+\begin{tabular}{@{}p{2.55in}p{2.6in}}
+School of Economics                  & {\it E-mail:} \href{mailto:bg654@drexel.edu}{bg654@drexel.edu} \\
+LeBow College of Business            & {\it Phone:} (856) 381-2348 \\
+Drexel University, Office 1030       & {\it Website:} \href{https://bgian123.github.io}{bgian123.github.io} \\
+3220 Market St, Philadelphia, PA 19104 \\
 \end{tabular}
 
-
+%-----------------------------------------------------------------
 \section{\sc Education}
-{\bf Drexel University}, Philadelphia, Pennsylvania USA\\
-\vspace*{-.1in}
-\begin{list1}
-\item[] Ph.D. Candidate, Economics, September 2024--Present (Expected graduation date: June 2027)
-\item[] Ph.D. Student, Economics, August 2022--September 2024
-\begin{list2}
-\vspace*{.05in}
-\item[] Advisor: Yoto V. Yotov
-\item[] Completed Ph.D. coursework in international trade (theory and empirics), industrial organization, and econometrics
-\end{list2}
-\vspace*{.05in}
-\end{list1}
+{\bf Drexel University}, Philadelphia, PA \hfill {\bf 2022--2027 (expected)}\\
+Ph.D., Economics; Ph.D. Candidate since September 2024\\
+Expected completion: June 2027\\
+Advisor: Yoto V. Yotov
 
-{\bf McGill University}, Montreal, Quebec CAN\\
-\vspace*{-.1in}
-\begin{list1}
-\item[] M.A., Economics, August 2021
-\begin{list2}
-\vspace*{.05in}
-\item[] Specialized in international trade under Ngo Van Long; completed additional advanced coursework in computational economics and forecasting
-\end{list2}
-\vspace*{.05in}
-\item[] B.A., Economics, May 2020
-\end{list1}
+\entrygap
+{\bf McGill University}, Montreal, QC, Canada\\
+M.A., Economics \hfill {\bf 2021}\\
+B.A., Economics, with Distinction \hfill {\bf 2020}
 
+%-----------------------------------------------------------------
+\section{\sc Fields}
+International Trade, Applied Industrial Organization, Applied Econometrics
 
-\section{\sc Research Interests}
-International trade: gravity modeling, sanctions, elasticity measurement, labor-market effects, and integration of geospatial modeling
+%-----------------------------------------------------------------
+\section{\sc Job Market\\ Paper}
+\paper{Chokepoints}{2026}{Solo-authored}
+Models the disruption of a maritime chokepoint as a strategic choice rather than an exogenous shock. In an $(N+1)$-country Armington economy, a disruptor that raises trade costs between other countries improves its own terms of trade even absent any geopolitical motive, and the gain scales quadratically in the size of the disrupted corridor, rationalizing why disruptors target arteries rather than individual routes. Applies the model to the 2023--24 Red Sea crisis using a continuous, geography-determined measure of each country pair's exposure to closure of the Bab el-Mandeb, built by rerouting 39 million city-pair freight paths over a global road and maritime network. PPML gravity estimates show that trade fell on exposed dyads, with the response concentrated among Western-aligned pairs; exact hat algebra delivers the general-equilibrium welfare incidence, with losses increasing in exposure and Iran's own gain negligible. Inverting the disruptor's first-order condition shows that each dollar Iran gains at the margin costs Western economies roughly \$200 to \$1,200, and that self-interest alone rationalizes the campaign only if it cost Iran less than \$42 million per year, well below independent estimates of Iranian support to the Houthis: a positive weight on harming adversaries is required to explain the observed disruption.
 
-Industrial organization: warranties, insurance policies, hidden attributes, and add-on pricing
+%-----------------------------------------------------------------
+\section{\sc Working\\ Papers}
+\paper{Perceived Protection: Tariff Spillovers to Product Substitutes in the Used Car Market}{2026}{with Sebastien Bradley, Mian Dai, and Yoto V. Yotov \quad {\em CGPA Working Paper 2026-16}}
+Studies the spillover effects of the 2025 ``Liberation Day'' automotive tariffs on the untaxed U.S. used-car market. Using over eight million weekly web-scraped listings and a VIN-based crosswalk identifying each vehicle's country of assembly, documents an immediate and persistent 0.2--0.6\% increase in the prices of foreign-brand used vehicles relative to domestic-brand vehicles, concentrated among the newest model years---the closest substitutes for new cars---and consistent with demand-side substitution. Foreign-brand vehicles assembled in the U.S. appreciate as much as those assembled abroad, suggesting that the perceived foreignness of a vehicle is largely independent of its true production location. Neglecting tariff pass-through to untaxed substitutes understates overall consumer incidence.
 
+\entrygap
+\paper{Logistic Distance}{2025--2026}{with Peter Herman, Serge Shikher, and Yoto V. Yotov}
+Constructs a transportation-network-informed distance measure that incorporates realistic city-to-city routing into the Mayer and Zignago (2011) population-weighted distance formula, making bilateral distances responsive to infrastructure shocks. Applies the measure to the 2023 Red Sea crisis as a natural experiment, estimating a saturated gravity model in an event-study framework on monthly bilateral trade data.
 
-\section{\sc Working Papers}
-{\em ``Chokepoints''} \hfill {\bf 2026}\\
-{\small Solo-authored}\\
-Develop a structural model of strategic maritime chokepoint disruption in an $(N+1)$-country Armington trade economy. Show that an agitator can rationally disrupt rival trade corridors by exploiting terms-of-trade gains that increase with corridor size. Derive an augmented structural gravity system---standard structural gravity closed by an optimality condition for the disrupted multilateral resistances---and an augmented ACR welfare decomposition that isolates a strategic terms-of-trade channel. Apply the model to the Red Sea crisis using dyad-specific rerouting intensities constructed from a global network of 6{,}000 cities, estimating trade elasticities with a PPML event study and quantifying the general-equilibrium incidence of the disruption.
-\vspace{.08in}
+\entrygap
+\paper{Time-Varying Distance and Trade}{2025--2026}{with Peter Herman, Serge Shikher, and Yoto V. Yotov}
+Extends the Mayer and Zignago (2011) population-weighted distance formula to allow bilateral distances to evolve over time using annual city-level population data from the mid-twentieth century onward, and examines within a structural gravity framework how long-run shifts in the spatial distribution of population have shaped bilateral trade patterns.
 
-{\em ``Transportation Choke Points, Trade, and Logistic Distance''} \hfill {\bf 2025--2026}\\
-{\small Joint with Peter Herman, Serge Shikher, and Yoto V. Yotov}\\
-Constructs a novel transportation-network-informed distance variable that incorporates realistic city-to-city routing into the Mayer and Zignago (2011) population-weighted distance formula, rendering bilateral distances responsive to infrastructure shocks. Applies the measure to the 2023 Red Sea crisis as a natural experiment, estimating a saturated gravity model in an event-study framework on monthly bilateral trade data.
-\vspace{.08in}
+%-----------------------------------------------------------------
+\section{\sc Work in\\ Progress}
+\paper{Shrouded by Statute: Mandated Used-Car Warranties and the Market}{2026}{Solo-authored}
+Asks whether state used-car lemon laws, which often require dealers to attach a short express warranty to vehicles sold below sharp odometer cutoffs (e.g., 125,000 miles in Massachusetts), generate price premiums. Using 9.9 million web-scraped listings and a regression-discontinuity design with rich fixed effects, finds no warranty premium, alongside pronounced bunching of odometer readings just above the Massachusetts cutoff and reallocation of near-cutoff inventory across state lines. Rationalizes both facts with a shrouded-attribute model in the spirit of Gabaix and Laibson (2006): when buyers unaware of the mandate are the marginal buyers of covered vehicles, the equilibrium premium is zero regardless of the dealer's cost; dealers have no private incentive to debias buyers because disclosure raises claims costs, cannibalizes service-contract sales, and is a public good among rivals; and the resulting unpriced cost acts as a tax on covered sales that is shifted onto the quantity margin. Calibrated simulations reproduce the observed magnitudes of both the null price effect and the Massachusetts bunching.
 
-{\em ``Automotive Tariffs, Spillover Effects, and the Used Car Market''} \hfill {\bf 2025--2026}\\
-{\small Joint with Sebastien Bradley, Mian Dai, and Yoto V. Yotov}\\
-Constructs a dynamically web-scraped dataset of approximately nine million U.S. used vehicle listings (April--October 2025) to study how automotive import tariffs propagate into the secondary vehicle market, using an event-study design around the 2025 tariff announcement and implementation dates and comparing price dynamics by country of manufacture and by brand origin.
-\vspace{.08in}
+%-----------------------------------------------------------------
+\section{\sc Presentations}
+Philadelphia Trade Group, 2025\\
+Drexel Sanctions Workshop (participant), 2024
 
-{\em ``Time-Varying Distance and Trade''} \hfill {\bf 2025--2026}\\
-{\small Joint with Peter Herman, Serge Shikher, and Yoto V. Yotov}\\
-Extends the Mayer and Zignago (2011) population-weighted distance formula to allow bilateral distances to fluctuate over time using annual city-level population data from the mid-twentieth century onward, and analyzes within a gravity framework how long-run shifts in the spatial distribution of population have shaped bilateral trade patterns.
-\vspace{.08in}
+%-----------------------------------------------------------------
+\section{\sc Fellowships\\ and Awards}
+Fellow, Center for Global Policy Analysis, Drexel University \hfill 2025--present\\
+Dr.\ Tom Hindelang Outstanding Ph.D. Student Instructor Award, Drexel University \hfill 2025\\
+Teaching Assistant Excellence Award, Drexel University \hfill 2024\\
+Dragon Fellowship, Drexel University \hfill 2022--present\\
+Master's Teaching Assistantship, McGill University \hfill 2020--2021
 
+%-----------------------------------------------------------------
+\section{\sc Teaching\\ Experience}
+{\bf Instructor of Record}, Drexel University\\
+Intermediate Microeconomics (ECON 301) \hfill Spring 2026\\
+Principles of Microeconomics (ECON 201) \hfill Fall 2024, Fall 2025\\
+Ph.D. Math Camp \hfill Summer 2025
 
-\section{\sc Honors and Awards}
-Drexel University: Fellow at the Center for Global Policy Analysis, 2025--Present; Dr. Tom Hindelang Outstanding Ph.D. Student Instructor Award, 2025; Drexel Teaching Assistant Excellence Award, 2024; Dragon Fellowship (\$2,500 per annum), 2022--Present
+\entrygap
+{\bf Teaching Assistant}\\
+Introductory Microeconomics, Drexel University \hfill 2022--2024\\
+Introductory Macroeconomics, McGill University \hfill 2020--2021
 
-%\vspace*{-2.5mm}
-%NSF Vertical Integration of Research and Education in Statistics and
-%Mathematical Sciences\\ (VIGRE) teaching fellowship.
-%
-\vspace*{-2.5mm}
-McGill University: Awarded Master's Teaching Assistantship, 2020--2021; \\
-\ \ \ \ \  Graduated with Distinction, 2020; Principal Student-Athlete Honour Roll, 2017\\
+%-----------------------------------------------------------------
+\section{\sc Research\\ Experience}
+{\bf Center for Global Policy Analysis}, Drexel University\\
+\role{Fellow}{2025--present}
+Contributed to the development of the large-scale EQUIP trade simulation model; developed a geospatially founded logistic distance measure; built distributed estimation pipelines on HPC clusters (Slurm), scaling to 5,000+ PPML regressions with high-dimensional fixed effects.
 
-\section{\sc Teaching Experience}
-{\bf Drexel University}, Philadelphia, Pennsylvania USA
+\entrygap
+{\bf U.S. International Trade Commission}, Washington, DC\\
+\role{Student Trainee (Economist)}{2024--2025}
+Studied the effect of population movements on international trade flows in a structural gravity framework; used geospatial data and graph-theoretic methods in Python to predict shipping routes and construct a new logistic distance variable; provided technical assistance to USTR.
 
-\vspace{-.3cm}
-{\em Course Instructor} \hfill {\bf September 2024--Present}\\
-Principles of Microeconomics (ECON 201): Fall 2024 and Fall 2025; Ph.D. Math Camp: Summer 2025; Intermediate Microeconomics (ECON 301): Spring 2026
+\entrygap
+{\bf Drexel University}\\
+\role{Research Assistant to Yoto V. Yotov}{2022--present}
+Assembled, cleaned, and analyzed data from a wide range of trade sources in R and Stata; prepared summaries of trade-policy research.
 
-{\em Teaching Assistant} \hfill {\bf August 2022--Present}\\
-Facilitated restructuring of introductory microeconomics course for large-section formats, conducted office hours, graded, and ran occasional lectures
+%-----------------------------------------------------------------
+\section{\sc Professional\\ Service}
+Referee: {\em Defence and Peace Economics}, {\em Economics Letters}, {\em Review of International Economics}, {\em The World Economy}
 
-{\bf McGill University}, Montreal, Quebec CAN
+%-----------------------------------------------------------------
+\section{\sc Skills}
+{\it Programming:} Stata, Python, R, MATLAB, Bash, Slurm (HPC), \LaTeX\\
+{\it Languages:} English (native), French (fluent)
 
-\vspace{-.3cm}
-{\em Teaching Assistant} \hfill {\bf August 2020--May 2021}\\
-Ran weekly recitations for introductory macroeconomics course and fielded questions in an online discussion forum
-
-\vspace{5mm}
-
-\section{\sc Research Experience}
-{\bf Drexel University}, Philadelphia, Pennsylvania USA
-
-\vspace{-.3cm}
-{\em Fellow at the Center for Global Policy Analysis} \hfill {\bf May 2025--Present}\\
-Worked on the development of a large-scale EQUIP trade simulation model, developed a geospatially founded logistical distance measurement, and designed and executed distributed estimation pipelines using HPC clusters (Slurm), scaling to 5,000+ PPML regressions with high-dimensional fixed effects
-
-{\em Research Assistant} \hfill {\bf December 2022--Present}\\
-Worked as an RA for Dr. Yotov, processing, analyzing, and trimming data from an extensive range of trade-relevant sources in R and Stata; wrote reports on and summarized trade-related policy papers
-
-{\bf U.S. International Trade Commission}, Washington, DC USA
-
-\vspace{-.3cm}
-{\em Student Trainee (Economist)} \hfill {\bf July 2024--March 2025}\\
-Worked on a research project on the impact of population movements on international trade flows in the structural gravity framework; employed cutting-edge geospatial data and graph theory methods in Python to predict shipping routes between coordinate pairs and generate a new logistical distance variable; provided technical assistance to USTR
-
-\vspace{5mm}
-
-\section{\sc Other Experience}
-{\bf Acentus Practice Management}, Mount Laurel, New Jersey USA
-
-\vspace{-.3cm}
-{\em Billing and Claims Analyst (Intern)} \hfill {\bf August 2021--May 2022}\\
-Streamlined the healthcare billing process and sought to identify and remedy idiosyncrasies in denied payments for a major South Jersey medical network
-
-{\bf Que Zhi Ling School}, Montreal, Quebec CAN
-
-\vspace{-.3cm}
-{\em Primary School Math Teacher} \hfill {\bf April 2020--August 2020}\\
-Taught primary school mathematics for a francophone
-private summer academy in Montreal
-
-\section{\sc Referee Service}
-Referee for {\em Defence and Peace Economics}, 2026\\
-Referee for {\em Economics Letters}, 2024 and 2025\\
-Referee for {\em Review of International Economics}, 2024\\
-Referee for {\em The World Economy}, 2024
-
-
-\section{\sc Relevant Skills}
-\textit{Programming}: Stata, Python (Selenium), R, MATLAB \\
-\textit{Computing/Tools}: Bash, Slurm (HPC job arrays), \LaTeX \\
-\textit{Languages}: English (Native) and French (Fluent)\\
-\textit{Methods}: Gravity modeling: estimation and GE analysis; use of geospatial data in Python; time-series forecasting\\
-
-
-
-\section{\sc Additional}
-Presented ``Transportation Choke Points, Trade, and Logistic Distance'' at Philadelphia Trade Group meeting (2025)\\
-Participated in Drexel Sanctions Workshop (2024)\\
-Took course in differential equations from Camden County College (Fall 2021)\\
-HIAS Refugee Welcome Center Volunteer (2018) \\
-Eagle Scout
-
-
-
+%-----------------------------------------------------------------
+\section{\sc References}
+\begin{tabular}{@{}p{3in}}
+{\bf Yoto V. Yotov} (Advisor)\\
+Professor of Economics\\
+School of Economics, LeBow College of Business\\
+Drexel University\\
+\href{mailto:yotov@drexel.edu}{yotov@drexel.edu}\\
+\end{tabular}
 
 \end{resume}
 \end{document}
