@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.9.11)  22 SEP 2026 18:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.9.11)  22 SEP 2026 18:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -299,7 +299,7 @@ Here is how much of TeX's memory you used:
  25587 multiletter control sequences out of 15000+600000
  510324 words of font info for 48 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 60i,8n,63p,1374b,341s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,8n,63p,1385b,341s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf
 /fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.en
 c}{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}</usr/share/texmf/fonts/type1/
@@ -309,7 +309,7 @@ ic/lm/lmmi10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10.pfb></usr/share/
 texmf/fonts/type1/public/lm/lmr7.pfb></usr/share/texmf/fonts/type1/public/lm/lm
 r9.pfb></usr/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fon
 ts/type1/public/lm/lmri9.pfb>
-Output written on bgres.pdf (3 pages, 210364 bytes).
+Output written on bgres.pdf (3 pages, 210414 bytes).
 PDF statistics:
  75 PDF objects out of 1000 (max. 8388607)
  50 compressed objects within 1 object stream

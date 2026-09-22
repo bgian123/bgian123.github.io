@@ -52,3 +52,12 @@ Search each HTML file for `[` — every remaining placeholder is bracketed.
 - **Analytics**: GoatCounter or Plausible if you want to see when committees
   are reading your JMP (October–December traffic spikes are real).
 - Link the site from your email signature, CV header, and EJM/AEA JOE profiles.
+
+## Paper abstracts (single source of truth)
+
+Abstracts shared by the site and the CV live in `abstracts/<key>.txt`
+(currently: `chokepoints`). To change one, edit that file and run
+`python3 sync_abstracts.py`, then recompile the CV and copy it to `cv.pdf`.
+The script rewrites the marked blocks (`<!-- abstract:<key> -->` in HTML,
+`% abstract:<key>` in `cv-src/bgres.tex`) so the homepage, research page,
+and CV never drift apart.
