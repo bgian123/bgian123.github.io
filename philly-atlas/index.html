@@ -198,10 +198,10 @@ footer{font-size:12px;color:var(--muted);margin-top:14px;display:flex;flex-wrap:
       <p><b>Parks.</b> OpenStreetMap areas tagged leisure=park or nature_reserve, dissolved so overlaps count once, intersected with each neighborhood and divided by its land area (Census land area, which excludes the rivers).</p>
       <p><b>Transit.</b> SEPTA Market-Frankford (L) and Broad Street Line stations, including the Broad-Ridge Spur, from OpenStreetMap; Regional Rail stations separately. Distance to the subway is measured from an interior point of the neighborhood.</p>
       <p><b>Food and drink.</b> OpenStreetMap points and building centroids. Grocery stores are supermarkets, grocery stores and greengrocers; corner and convenience stores are counted separately. OSM coverage of small businesses is incomplete, so compare neighborhoods rather than reading counts as a census.</p>
-      <p><b>Shootings.</b> City shooting-victim records, <span id="shootYrs"></span>, assigned to neighborhoods by location. The rate is annualized per 10,000 residents.</p>
+      <p><b>Shootings.</b> Shooting-victim records from the Office of the Philadelphia City Controller, <span id="shootYrs"></span>, assigned to neighborhoods by location. The rate is annualized per 10,000 residents.</p>
     </div>
   </details>
-  <footer><span>Data: City of Philadelphia (OPA, RTT, shootings), U.S. Census Bureau ACS via Census Reporter, © OpenStreetMap contributors (ODbL).</span><span>Built by <a href="https://bgian123.github.io/">Blaize Giangiulio</a></span></footer>
+  <footer><span>Data: City of Philadelphia (OPA, RTT), Philadelphia City Controller (shootings), U.S. Census Bureau ACS via Census Reporter, © OpenStreetMap contributors (ODbL).</span><span>Built by <a href="https://bgian123.github.io/">Blaize Giangiulio</a></span></footer>
 </div>
 
 <script>
@@ -235,8 +235,8 @@ const METRICS = [
   ['med_age','Median age','People','d1','Population-weighted average of block-group medians (approx.).'],
   ['pct_ba_plus',"Bachelor's degree or higher",'People','pct','Share of adults 25+ with at least a BA.'],
   ['pct_owner','Homeowners','People','pct','Share of occupied homes that are owner-occupied.'],
-  ['n_subway','Subway stations','Getting around','int','Market-Frankford and Broad Street Line stations inside the neighborhood.'],
   ['mi_to_subway','Distance to the subway','Getting around','mi','Straight-line miles from the neighborhood’s interior to the nearest L or BSL station.'],
+  ['n_subway','Subway stations','Getting around','int','Market-Frankford and Broad Street Line stations inside the neighborhood.'],
   ['n_regional_rail','Regional Rail stations','Getting around','int','SEPTA Regional Rail stations inside the neighborhood.'],
   ['pct_no_car','Households without a car','Getting around','pct','Share of households with no vehicle available.'],
   ['pct_transit','Commute by transit','Getting around','pct','Share of workers who commute by public transit.'],
@@ -253,7 +253,7 @@ const METRICS = [
   ['pct_park','Park coverage','Green space','pct','Share of the neighborhood’s land that is public park or nature reserve.'],
   ['park_sqmi','Park area','Green space','d2','Square miles of park inside the neighborhood.'],
   ['library_per10k','Libraries per 10k','Green space','d2','Public libraries per 10,000 residents.'],
-  ['shootings_per10k_yr','Shootings per 10k a year','Safety','d1','Shooting victims per 10,000 residents per year, 2022–2025.'],
+  ['shootings_per10k_yr','Shootings per 10k a year','Safety','d1','Shooting victims per 10,000 residents per year, 2022–2025 (Philadelphia City Controller).'],
   ['shootings_total','Shootings, 2022–2025','Safety','int','Total shooting victims recorded in the neighborhood.'],
   ['shootings_fatal','Fatal shootings, 2022–2025','Safety','int','Shooting victims who died.'],
 ].map(([key,label,group,fmt,desc,o]) => ({key,label,group,fmt,desc,...(o||{})}));

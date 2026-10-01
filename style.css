@@ -209,7 +209,7 @@ footer {
 /* --- Projects (Other page) ------------------------------------ */
 
 .project { margin-bottom: 2.4rem; }
-.project .shot { display: block; max-width: 22rem; margin-bottom: 0.9rem; }
+.project .shot { display: block; margin-bottom: 0.9rem; }
 .project .shot img {
   display: block;
   width: 100%;
