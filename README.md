@@ -5,6 +5,9 @@
 - `index.html` — home: photo, bio, JMP, references
 - `research.html` — JMP, working papers, work in progress
 - `teaching.html` — instructor experience, evals, referee service
+- `other.html` — side projects (links to the Philly Neighborhood Atlas)
+- `philly-atlas/index.html` — the atlas itself, self-contained (built by `interactive_map/scripts/build_data.py` in the philadelphia_map project; copy `docs/index.html` here to update)
+- `images/` — screenshots for project cards
 - `style.css` — all styling (change `--accent` at the top to recolor the whole site)
 
 ## Updating

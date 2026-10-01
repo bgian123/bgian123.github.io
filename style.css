@@ -205,3 +205,21 @@ footer {
   .masthead h1 { font-size: 1.7rem; }
   nav a { margin: 0 0.5rem; }
 }
+
+/* --- Projects (Other page) ------------------------------------ */
+
+.project { margin-bottom: 2.4rem; }
+.project .shot { display: block; margin-bottom: 0.9rem; }
+.project .shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  transition: border-color 0.15s;
+}
+.project .shot:hover img, .project .shot:focus-visible img { border-color: var(--accent); }
+.project .title { font-weight: 600; font-size: 1.08rem; margin: 0 0 0.15rem; }
+.project .title a { color: var(--ink); text-decoration: none; }
+.project .title a:hover { color: var(--accent); }
+.project .meta { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin: 0 0 0.45rem; }
+.project .links { font-family: var(--sans); font-size: 0.85rem; }
