@@ -324,8 +324,11 @@ ul.courses li {
 }
 ul.courses .code { font-family: var(--sans); font-size: 0.85rem; font-weight: 600; color: var(--accent); padding-top: 0.12rem; }
 ul.courses .term { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); text-align: right; padding-top: 0.12rem; }
+ul.courses.awards-list li { grid-template-columns: 1fr auto; }
 @media (max-width: 560px) {
   ul.courses li { grid-template-columns: 4.6rem 1fr; }
   ul.courses .term { grid-column: 2; text-align: left; padding-top: 0; }
   .awards p { flex-direction: column; gap: 0; }
 }
+
+@media (max-width: 560px) { ul.courses.awards-list li { grid-template-columns: 1fr auto; } ul.courses.awards-list .term { grid-column: auto; text-align: right; } }
