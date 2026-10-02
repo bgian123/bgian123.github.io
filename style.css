@@ -109,7 +109,7 @@ a:hover { text-decoration-thickness: 2px; }
 
 .intro-side { flex-shrink: 0; width: 165px; }
 .intro-side .contact { margin: 0.6rem 0 0; line-height: 1.6; font-size: 0.85rem; overflow-wrap: anywhere; }
-.bio p, details.abstract p, .paper .desc { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+.bio p, details.abstract p, .paper .desc, .project .desc { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
 
 .interests {
   text-align: center;
@@ -227,7 +227,7 @@ footer {
 @media (max-width: 560px) {
   .intro { flex-direction: column; align-items: center; }
   .intro-side { text-align: center; }
-  .bio p, details.abstract p, .paper .desc { text-align: left; }
+  .bio p, details.abstract p, .paper .desc, .project .desc { text-align: left; }
   .masthead h1 { font-size: 1.7rem; }
   nav a { margin: 0 0.5rem; }
 }
