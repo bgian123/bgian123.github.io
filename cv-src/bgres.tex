@@ -8,6 +8,7 @@
 \textwidth=6.0in
 \itemsep=0in
 \parsep=0in
+\emergencystretch=1.5em
 
 % Consistent spacing between entries
 \newcommand{\entrygap}{\vspace{.09in}}
@@ -16,7 +17,7 @@
 \newcommand{\paper}[3]{%
   \needspace{5\baselineskip}%
   {\em ``#1''} \hfill {\bf #2}\\
-  {\small #3}\\}
+  \if\relax\detokenize{#3}\relax\else{\small #3}\\\fi}
 
 % Position entry: {title}{dates}
 \newcommand{\role}[2]{{\em #1} \hfill {\bf #2}\\}
@@ -55,7 +56,7 @@ International Trade, Applied Industrial Organization, Applied Econometrics
 
 %-----------------------------------------------------------------
 \section{\sc Job Market\\ Paper}
-\paper{Chokepoints}{2026}{Solo-authored}
+\paper{Trade Chokepoints}{2026}{}
 % abstract:chokepoints
 This paper models the disruption of a maritime chokepoint as a strategic choice rather than an exogenous shock. In an $(N+1)$-country Armington economy, a disruptor that raises trade costs between other countries improves its own terms of trade even absent any geopolitical motive, and the gain scales quadratically in the size of the disrupted corridor, rationalizing why disruptors target arteries rather than individual routes. I apply the model to the 2023--24 Red Sea crisis using a continuous, geography-determined measure of each country pair's exposure to closure of the Bab el-Mandeb, built by rerouting 39 million city-pair freight paths over a global road and maritime network. PPML gravity estimates show that trade fell on exposed dyads, with the response concentrated among Western-aligned pairs; exact hat algebra delivers the general-equilibrium welfare incidence, with losses increasing in exposure and Iran's own gain negligible. Inverting the disruptor's first-order condition shows that each dollar Iran gains at the margin costs Western economies roughly \$200 to \$1,200, and that self-interest alone rationalizes the campaign only if it cost Iran less than \$42 million per year, well below independent estimates of Iranian support to the Houthis: a positive weight on harming adversaries is required to explain the observed disruption.
 % /abstract:chokepoints
@@ -79,13 +80,32 @@ We introduce a time-varying measure of distance between and within countries and
 
 %-----------------------------------------------------------------
 \section{\sc Work in\\ Progress}
-\paper{Shrouded by Statute: Mandated Used-Car Warranties and the Market}{2026}{Solo-authored}
+\paper{Shrouded by Statute: Mandated Used-Car Warranties and the Market}{2026}{}
 Asks whether state used-car lemon laws, which often require dealers to attach a short express warranty to vehicles sold below sharp odometer cutoffs (e.g., 125,000 miles in Massachusetts), generate price premiums. Using 9.9 million web-scraped listings and a regression-discontinuity design with rich fixed effects, finds no warranty premium, alongside pronounced bunching of odometer readings just above the Massachusetts cutoff and reallocation of near-cutoff inventory across state lines. Rationalizes both facts with a shrouded-attribute model in the spirit of Gabaix and Laibson (2006): when buyers unaware of the mandate are the marginal buyers of covered vehicles, the equilibrium premium is zero regardless of the dealer's cost; dealers have no private incentive to debias buyers because disclosure raises claims costs, cannibalizes service-contract sales, and is a public good among rivals; and the resulting unpriced cost acts as a tax on covered sales that is shifted onto the quantity margin. Calibrated simulations reproduce the observed magnitudes of both the null price effect and the Massachusetts bunching.
+
+\entrygap
+\paper{Drivers of Economic Gains from European Integration:\newline A Two-Stage Analysis of Directional Effects Across 50,000 Industry--Country Pairs}{2026}{with Lionel Fontagn\'e, Nicoletta Scutifero, and Yoto V. Yotov}
+
+\entrygap
+\paper{EQUIP: Enterprise for Quantitative International Policy}{2025--present}{Center for Global Policy Analysis, Drexel University}
+A large-scale computable general-equilibrium policy-evaluation platform under development at Drexel's Center for Global Policy Analysis. EQUIP embeds highly granular input--output linkages across industries and countries within a structural gravity framework and is built on state-of-the-art trade and production data, enabling ex ante quantification of how trade-policy shocks propagate through global value chains to sector-level output, trade flows, and welfare.
+
+\entrygap
+\paper{Arteries: A Multimodal Network Graph of U.S. Domestic Freight}{2026}{Python package}
+A Python package that fuses highly granular OpenStreetMap geometries for roads, freight rail, ports, and inland waterways into a single routable multimodal graph of internal U.S. goods movement. Intermodal transfer nodes link the modes into one network, supporting route-level distance measurement, freight-flow assignment, and chokepoint and resilience analysis at fine spatial resolution.
 
 %-----------------------------------------------------------------
 \section{\sc Presentations}
-Philadelphia Trade Group: ``Perceived Protection,'' May 2026; ``Logistic Distance,'' March 2025\\
-Drexel Sanctions Workshop (participant), 2024
+``Perceived Protection,'' Philadelphia Trade Group \hfill May 2026\\
+``Logistic Distance,'' Pennsylvania Economic Association Annual Conference \hfill Spring 2025\\
+``Logistic Distance,'' Philadelphia Trade Group \hfill March 2025\\
+Drexel Sanctions Workshop (participant) \hfill 2024
+
+\entrygap
+{\bf Drexel University Brown Bag Seminar}\\
+``Perceived Protection'' \hfill 2025\\
+``Logistic Distance'' \hfill 2024\\
+``Dynamic Distance'' \hfill 2023
 
 %-----------------------------------------------------------------
 \section{\sc Fellowships\\ and Awards}
@@ -139,11 +159,13 @@ Referee: {\em Defence and Peace Economics}, {\em Economics Letters}, {\em Review
 
 %-----------------------------------------------------------------
 \section{\sc References\\ and Committee}
+{\small
 {\bf Constantinos Syropoulos} (Co-chair), Drexel University, \href{mailto:cas86@drexel.edu}{cas86@drexel.edu}\\
 {\bf Yoto V. Yotov} (Co-chair), Drexel University, \href{mailto:yotov@drexel.edu}{yotov@drexel.edu}\\
 {\bf Sebastien Bradley} (Member), Drexel University, \href{mailto:sjb355@drexel.edu}{sjb355@drexel.edu}\\
 {\bf Mario Larch} (Member), University of Bayreuth, \href{mailto:mario.larch@uni-bayreuth.de}{mario.larch@uni-bayreuth.de}\\
 {\bf Ohyun Kwon} (Member), Wharton (University of Pennsylvania), \href{mailto:theekwonomist@gmail.com}{theekwonomist@gmail.com}
+}
 
 \end{resume}
 \end{document}

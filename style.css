@@ -109,7 +109,7 @@ a:hover { text-decoration-thickness: 2px; }
 
 .intro-side { flex-shrink: 0; width: 165px; }
 .intro-side .contact { margin: 0.6rem 0 0; line-height: 1.6; font-size: 0.85rem; overflow-wrap: anywhere; }
-.bio p, details.abstract p { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+.bio p, details.abstract p, .paper .desc { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
 
 .interests {
   text-align: center;
@@ -227,7 +227,7 @@ footer {
 @media (max-width: 560px) {
   .intro { flex-direction: column; align-items: center; }
   .intro-side { text-align: center; }
-  .bio p, details.abstract p { text-align: left; }
+  .bio p, details.abstract p, .paper .desc { text-align: left; }
   .masthead h1 { font-size: 1.7rem; }
   nav a { margin: 0 0.5rem; }
 }
@@ -255,3 +255,17 @@ footer {
 .project .title a:hover { color: var(--accent); }
 .project .meta { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin: 0 0 0.45rem; }
 .project .links { font-family: var(--sans); font-size: 0.85rem; }
+
+/* --- Plain lists (presentations) ------------------------------ */
+.paper .desc { margin: 0.3rem 0 0; font-size: 0.98rem; color: #333; }
+ul.plain { list-style: none; padding: 0; margin: 0 0 1rem; }
+ul.plain li { margin: 0 0 0.25rem; }
+.subhead {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.2rem 0 0.4rem;
+}
