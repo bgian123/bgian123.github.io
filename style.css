@@ -269,3 +269,63 @@ ul.plain li { margin: 0 0 0.25rem; }
   color: var(--muted);
   margin: 1.2rem 0 0.4rem;
 }
+
+/* --- Teaching page -------------------------------------------- */
+.awards {
+  border-left: 4px solid var(--gold);
+  background: #FBF8EC;
+  padding: 0.85rem 1.1rem 0.6rem;
+  margin: 0.5rem 0 0.5rem;
+}
+.awards p { margin: 0 0 0.35rem; display: flex; justify-content: space-between; gap: 1rem; }
+.awards .awards-label {
+  font-family: var(--sans); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.45rem;
+}
+.awards .yr { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+.glance { font-family: var(--sans); font-size: 0.88rem; color: var(--muted); margin: 0 0 0.4rem; }
+.glance strong { color: var(--accent); }
+details.evals summary {
+  font-family: var(--sans); font-size: 0.85rem; color: var(--accent); cursor: pointer; margin-bottom: 0.3rem;
+}
+.eval { margin: 0.9rem 0 1.6rem; }
+.eval img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); }
+.carousel-label {
+  font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin: 1rem 0 0.4rem;
+}
+.carousel { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.9rem 0 0.5rem; }
+.carousel .quote {
+  margin: 0; padding: 0 0.5rem 0 1.4rem; position: relative; font-style: italic; color: #333;
+  min-height: 5.2em; text-align: justify; hyphens: auto; -webkit-hyphens: auto;
+}
+.carousel .quote::before {
+  content: "\201C"; position: absolute; left: 0; top: -0.35rem; font-size: 2rem; color: var(--gold); font-style: normal;
+}
+.js .carousel { display: grid; }
+.js .carousel .quote { grid-area: 1 / 1; visibility: hidden; min-height: 0; }
+.js .carousel .quote.active { visibility: visible; }
+.js .carousel .carousel-nav { grid-area: 2 / 1; }
+.carousel-nav { display: none; }
+.js .carousel-nav {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  font-family: var(--sans); font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem;
+}
+.carousel-nav button {
+  font: inherit; font-size: 1rem; line-height: 1; color: var(--accent); background: none;
+  border: 1px solid var(--rule); border-radius: 50%; width: 2.1rem; height: 2.1rem; cursor: pointer;
+}
+.carousel-nav button:hover, .carousel-nav button:focus-visible { border-color: var(--accent); }
+.note { font-family: var(--sans); font-size: 0.78rem; color: var(--muted); margin-top: -0.6rem; }
+ul.courses { list-style: none; padding: 0; margin: 0 0 0.6rem; font-size: 0.97rem; }
+ul.courses li {
+  display: grid; grid-template-columns: 5.6rem 1fr auto; gap: 0.75rem;
+  padding: 0.28rem 0; border-bottom: 1px solid #eeeeea;
+}
+ul.courses .code { font-family: var(--sans); font-size: 0.85rem; font-weight: 600; color: var(--accent); padding-top: 0.12rem; }
+ul.courses .term { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); text-align: right; padding-top: 0.12rem; }
+@media (max-width: 560px) {
+  ul.courses li { grid-template-columns: 4.6rem 1fr; }
+  ul.courses .term { grid-column: 2; text-align: left; padding-top: 0; }
+  .awards p { flex-direction: column; gap: 0; }
+}
