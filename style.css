@@ -334,5 +334,5 @@ ul.courses.awards-list li { grid-template-columns: 1fr auto; }
 @media (max-width: 560px) { ul.courses.awards-list li { grid-template-columns: 1fr auto; } ul.courses.awards-list .term { grid-column: auto; text-align: right; } }
 
 /* --- Text selection in Drexel gold ------------------------------ */
-::selection { background: var(--gold); color: var(--ink); }
-::-moz-selection { background: var(--gold); color: var(--ink); }
+::selection { background: rgba(255, 198, 0, 0.55); color: var(--ink); }
+::-moz-selection { background: rgba(255, 198, 0, 0.55); color: var(--ink); }
