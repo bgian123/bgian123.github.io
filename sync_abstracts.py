@@ -15,7 +15,7 @@ TARGETS = ["index.html", "research.html", "cv-src/bgres.tex"]
 def to_html(t):
     t = t.replace("&", "&amp;").replace("–", "&ndash;").replace("—", "&mdash;")
     t = t.replace("(N+1)", "<em>(N+1)</em>").replace("−", "&minus;")
-    return textwrap.fill(t, 78, initial_indent=" " * 10, subsequent_indent=" " * 10)
+    return textwrap.fill(t, 78, initial_indent=" " * 10, subsequent_indent=" " * 10, break_on_hyphens=False, break_long_words=False)
 
 def to_tex(t):
     t = t.replace("$", r"\$").replace("%", r"\%").replace("&", r"\&")
