@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Letters — Blaize Giangiulio</title>
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<div class="testbanner" id="testbanner" hidden>Test mode — everything is saved in this browser only.</div>
+<div class="page">
+
+  <header class="masthead">
+    <h1>Blaize Giangiulio</h1>
+    <p class="affiliation">Letters of Recommendation</p>
+    <hr class="rule">
+    <hr class="rule thin">
+  </header>
+
+  <main>
+
+    <!-- Sign in -->
+    <section id="signin" class="signin" hidden>
+      <p class="lead">Thank you for writing on my behalf. Enter your email address to see the applications that need your letter.</p>
+      <form id="signinForm" autocomplete="on">
+        <input type="email" id="emailInput" name="email" placeholder="you@university.edu" required autocomplete="email" aria-label="Your email address">
+        <button class="btn" type="submit">Continue</button>
+      </form>
+      <p class="err" id="signinErr" role="alert"></p>
+      <p class="fine">Use the address I have on file for you. Questions? <a id="contactLink" href="mailto:bg654@drexel.edu">bg654@drexel.edu</a></p>
+    </section>
+
+    <!-- Queue -->
+    <section id="queue" hidden>
+      <div class="hello">
+        <h3 id="hello"></h3>
+        <span class="who"><span id="whoEmail"></span> · <button class="btn quiet small" id="signout" type="button">Not you?</button></span>
+      </div>
+      <p class="muted" style="margin:0.4rem 0 0">Everything that needs your letter, soonest first. Tick each one once it's sent and it moves out of the way.</p>
+
+      <div class="stats" id="stats"></div>
+
+      <div id="platforms"></div>
+
+      <h2>To send <span class="aside" id="todoAside"></span></h2>
+      <ul class="queue" id="todo"></ul>
+
+      <div id="groups"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    Questions about any of these? Email me at <a id="footMail" href="mailto:bg654@drexel.edu">bg654@drexel.edu</a>.
+  </footer>
+</div>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="writer.js"></script>
+</body>
+</html>

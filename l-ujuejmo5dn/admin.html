@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Letter desk</title>
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<div class="testbanner" id="testbanner" hidden>Test mode — data lives in this browser's storage. Export it from the Data tab before clearing your browser.</div>
+<div class="page wide">
+
+  <header class="masthead">
+    <h1>Letter Desk</h1>
+    <p class="affiliation">Applications &amp; recommenders · private</p>
+    <hr class="rule">
+    <hr class="rule thin">
+    <nav class="tabs" id="tabs" hidden>
+      <button type="button" data-tab="apps">Applications <span class="count" id="cApps"></span></button>
+      <button type="button" data-tab="postings">JOE Postings <span class="count" id="cPost"></span></button>
+      <button type="button" data-tab="notify">Notify <span class="count" id="cNotify"></span></button>
+      <button type="button" data-tab="writers">Writers</button>
+      <button type="button" data-tab="data">Data</button>
+    </nav>
+  </header>
+
+  <!-- Gate -->
+  <section id="gate" class="signin" hidden>
+    <p class="lead">Enter your password.</p>
+    <form id="gateForm">
+      <input type="password" id="pw" placeholder="Password" autocomplete="current-password" aria-label="Password" required>
+      <button class="btn" type="submit">Open</button>
+    </form>
+    <p class="err" id="gateErr" role="alert"></p>
+  </section>
+
+  <main id="main" hidden>
+
+    <!-- Applications -->
+    <section data-panel="apps" hidden>
+      <div class="toolbar">
+        <input type="search" id="appSearch" placeholder="Search my applications">
+        <label class="inline"><input type="checkbox" id="appOpenOnly"> Only with letters outstanding</label>
+        <button class="btn" type="button" id="addManual">+ Add an application not on JOE</button>
+      </div>
+      <p class="resultcount" id="appCount"></p>
+      <p class="resultcount">
+        <span class="chip pending">Name</span> not told yet ·
+        <span class="chip notified">Name</span> emailed, letter outstanding ·
+        <span class="chip done">✓ Name</span> sent / covered
+      </p>
+      <table class="grid" id="appTable"></table>
+    </section>
+
+    <!-- Postings -->
+    <section data-panel="postings" hidden>
+      <div class="toolbar">
+        <input type="search" id="pSearch" placeholder="Search institution, title, location, JEL, text…">
+        <select id="pType" aria-label="Type">
+          <option value="">All types</option>
+          <option value="US: Full">US · tenure track</option>
+          <option value="US: Other">US · visiting / other</option>
+          <option value="International: Full">Intl · tenure track</option>
+          <option value="International: Other">Intl · visiting / other</option>
+          <option value="Nonacademic">Nonacademic</option>
+        </select>
+        <select id="pMethod" aria-label="Letters via"><option value="">Letters via: any</option></select>
+        <label class="inline"><input type="checkbox" id="pPast"> Show past deadlines</label>
+        <label class="inline"><input type="checkbox" id="pHideApplied"> Hide applied</label>
+      </div>
+      <p class="resultcount" id="pCount"></p>
+      <table class="grid" id="pTable"></table>
+    </section>
+
+    <!-- Notify -->
+    <section data-panel="notify" hidden>
+      <div class="callout" id="notifyCallout"></div>
+      <div id="notifyList"></div>
+    </section>
+
+    <!-- Writers -->
+    <section data-panel="writers" hidden>
+      <p class="muted" style="margin-top:0">Who writes for you, the address they sign in with, and their role in the default assignment:
+        1 letter → first core writer; 2 → both core writers; 3 → + the research writer, or the teaching writer when a job is teaching-focused; 4 → both.
+        You can always override per application.</p>
+      <table class="grid writers" id="wTable"></table>
+      <div class="btns" style="margin-top:1rem">
+        <button class="btn ghost" type="button" id="wAdd">+ Add writer</button>
+        <button class="btn" type="button" id="wSave">Save writers</button>
+      </div>
+    </section>
+
+    <!-- Data -->
+    <section data-panel="data" hidden>
+      <h2>Settings</h2>
+      <div class="grid3">
+        <label class="field"><span>Your name (in emails)</span><input type="text" id="sMe"></label>
+        <label class="field"><span>Your email (shown to writers)</span><input type="email" id="sMyEmail"></label>
+        <label class="field"><span>Writer portal address</span><input type="url" id="sPortal" placeholder="https://…/index.html"></label>
+      </div>
+      <div class="grid3">
+        <label class="field"><span>Cc on emails to writers</span><input type="email" id="sCc"></label>
+        <label class="field" style="grid-column:span 2"><span>Testing</span><span style="text-transform:none;letter-spacing:0;font-size:0.9rem;color:var(--ink);display:flex;gap:0.45rem;align-items:center"><input type="checkbox" id="sHold"> Hold emails: Send only works for my own addresses</span></label>
+      </div>
+      <div class="btns"><button class="btn" type="button" id="sSave">Save settings</button>
+        <a class="btn ghost" id="openPortal" href="index.html" target="_blank" rel="noopener">Open the writer portal ↗</a></div>
+
+      <div data-testonly>
+      <h2>Password</h2>
+      <div class="grid3">
+        <label class="field"><span>New password</span><input type="password" id="pw1" autocomplete="new-password"></label>
+        <label class="field"><span>Repeat</span><input type="password" id="pw2" autocomplete="new-password"></label>
+        <div style="padding-top:1.2rem"><button class="btn ghost" type="button" id="pwSave">Change password</button></div>
+      </div>
+      <p class="small muted sans" style="margin-top:0">In test mode this only keeps casual visitors out of this page. Real protection comes from the backend, which will refuse admin changes without your key.</p>
+      </div>
+
+      <h2>Backup &amp; test data</h2>
+      <div class="btns">
+        <button class="btn ghost" type="button" id="exportBtn">Export everything (JSON)</button>
+        <label class="btn ghost" for="importFile" style="cursor:pointer">Import JSON…</label>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button class="btn ghost" type="button" id="demoBtn">Load demo applications</button>
+        <button class="btn danger" type="button" id="resetBtn">Erase all data</button>
+      </div>
+      <p class="small muted sans" id="builtNote"></p>
+    </section>
+  </main>
+
+  <footer>Not linked from the main site · noindex</footer>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="edTitle"></aside>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="data/postings.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
