@@ -2,7 +2,7 @@
    edit where letters go, and send writers their updates. */
 (function () {
   "use strict";
-  const { Backend, METHODS, METHOD_ORDER, ROLE_LABEL, stepsFor, subjectFor, suggestWriters, composeEmail,
+  const { Backend, METHODS, METHOD_ORDER, ROLE_LABEL, stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge,
     fmtDay, dueInfo, esc, uid, safeUrl, copyText, mailto, gmail, sha256 } = LP;
   const $ = (id) => document.getElementById(id);
   const POSTINGS = window.JOE_POSTINGS || [];
@@ -99,6 +99,63 @@
     return S.apps.filter((a) => (a.writers || []).includes(w.id) && !S.notified[a.id + "|" + w.id] && kindOf(a) !== "none" &&
       !silent(a) && !(kindOf(a) === "once" && S.platforms[w.id + "|" + a.method]));
   }
+  // writers on this application whose letter isn't sent/covered yet
+  function outstanding(a) {
+    const k = kindOf(a);
+    if (k === "later" || k === "none") return [];
+    return S.writers.filter((w) => (a.writers || []).includes(w.id) && writerStatus(a, w) !== "done" &&
+      !(k === "once" && S.platforms[w.id + "|" + a.method]) && !S.progress[a.id + "|" + w.id]);
+  }
+
+  /* ---------- nudge drawer ------------------------------------- */
+  function openNudge(appId) {
+    const a = S.apps.find((x) => x.id === appId); if (!a) return;
+    const ws = outstanding(a);
+    const live = Backend.mode === "live";
+    let h = '<button class="btn quiet close" type="button" data-close>Close ✕</button>';
+    h += '<h3 id="edTitle">Nudge: ' + esc(a.institution) + "</h3>";
+    h += '<p class="sec">' + esc(a.title) + " · " + (a.deadline ? "due " + esc(fmtDay(a.deadline, true)) + " (" + esc(dueInfo(a.deadline).text) + ")" : "no deadline") + "</p>";
+    if (!ws.length) h += '<p class="allclear">Every writer has sent this one.</p>';
+    ws.forEach((w) => {
+      const m = composeNudge(S, w, a);
+      const last = S.reminded[a.id + "|" + w.id];
+      h += '<div class="notify-card" data-nudge-writer="' + esc(w.id) + '"><header><h4>' + esc(w.name) + ' <span class="sans small muted">' + esc(w.email || "no email!") + "</span></h4>" +
+        '<span class="sans small muted">' + (last ? "Last nudged " + esc(fmtDay(last.slice(0, 10))) : "Not nudged yet") + "</span></header>" +
+        '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(m.subject) + '"></label>' +
+        '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="11">' + esc(m.body) + "</textarea></label>" +
+        '<div class="btns" style="margin-top:0.6rem">' +
+        (live
+          ? (blocked(w) ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed">Send — on hold</button>'
+                        : '<button class="btn" type="button" data-nsend="server">Send nudge' + (S.settings.cc ? " (cc " + esc(S.settings.cc) + ")" : "") + "</button>")
+          : '<button class="btn" type="button" data-nsend="gmail">Open in Gmail ↗</button><button class="btn ghost" type="button" data-nsend="mailto">Open in mail app</button>') +
+        '<button class="btn ghost" type="button" data-nsend="copy">Copy text</button></div></div>';
+    });
+    $("drawer").innerHTML = h;
+    $("drawer").querySelectorAll("[data-nudge-writer]").forEach((card) => {
+      const w = S.writers.find((x) => x.id === card.dataset.nudgeWriter);
+      card.addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-nsend]"); if (!b) return;
+        const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
+        if (b.dataset.nsend === "copy") { copyText("To: " + w.email + (S.settings.cc ? "\nCc: " + S.settings.cc : "") + "\nSubject: " + subj + "\n\n" + body, b); return; }
+        if (!w.email) { toast("Add " + w.first + "'s email on the Writers tab first"); return; }
+        if (b.dataset.nsend === "gmail") { window.open(gmail(w.email, subj, body) + (S.settings.cc ? "&cc=" + encodeURIComponent(S.settings.cc) : ""), "_blank", "noopener"); }
+        else if (b.dataset.nsend === "mailto") { location.href = mailto(w.email, subj, body) + (S.settings.cc ? "&cc=" + encodeURIComponent(S.settings.cc) : ""); }
+        else {
+          if (blocked(w)) { toast("Emails to writers are on hold (Data tab)"); return; }
+          if (!confirm("Send this nudge to " + w.email + (S.settings.cc ? " (cc " + S.settings.cc + ")" : "") + "?")) return;
+          b.disabled = true; b.textContent = "Sending…";
+          try { await Backend.sendEmail({ to: w.email, subject: subj, body }); }
+          catch (err) { toast(err.message); b.disabled = false; b.textContent = "Send nudge"; return; }
+        }
+        await Backend.markReminded(w.id, [a.id]);
+        card.querySelector("header .muted:last-child").textContent = "Nudged just now";
+        if (b.dataset.nsend === "server") { b.textContent = "Sent ✓"; toast("Nudge sent to " + (w.first || w.name)); }
+        load();
+      });
+    });
+    $("scrim").hidden = false; $("drawer").hidden = false; $("drawer").scrollTop = 0;
+  }
+
   function recent(iso, days) { return !!iso && (Date.now() - new Date(iso).getTime()) < days * 864e5; }
   function appliedJoeIds() { const m = {}; S.apps.forEach((a) => { if (a.joeId) m[a.joeId] = a; }); return m; }
   function tagHtml(method, conf) {
@@ -139,7 +196,8 @@
         '<div class="sub">' + (a.joeId ? "JOE" : "Added by hand") + (a.appliedOn ? " · applied " + esc(fmtDay(a.appliedOn)) : "") + "</div></td>" +
         "<td>" + tagHtml(a.method) + '<div class="sub">' + (a.letters || 0) + " letter" + (a.letters == 1 ? "" : "s") + "</div></td>" +
         '<td><div class="chips">' + (chips || '<span class="sub">none</span>') + "</div></td>" +
-        '<td class="act"><button class="btn ghost small" data-edit="' + esc(a.id) + '">Edit</button></td></tr>';
+        '<td class="act">' + (outstanding(a).length ? '<button class="btn small" data-nudge="' + esc(a.id) + '" title="Send a gentle reminder">Nudge</button> ' : "") +
+        '<button class="btn ghost small" data-edit="' + esc(a.id) + '">Edit</button></td></tr>';
     });
     $("appTable").innerHTML = h + "</tbody>";
   }
@@ -313,6 +371,7 @@
 
   document.addEventListener("click", (e) => {
     const c = e.target.closest("[data-close]"); if (c) { closeEditor(); return; }
+    const nu = e.target.closest("[data-nudge]"); if (nu) { openNudge(nu.dataset.nudge); return; }
     const ed = e.target.closest("[data-edit]");
     if (ed) { const a = S.apps.find((x) => x.id === ed.dataset.edit); if (a) openEditor(Object.assign({ joeUrl: (PBYID[a.joeId] || {}).joeUrl }, a), false); return; }
     const po = e.target.closest("[data-posting]");

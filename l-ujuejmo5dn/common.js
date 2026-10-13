@@ -274,6 +274,50 @@
 
   /* ---------- emails to writers -------------------------------- */
 
+  /* ---------- gentle nudge ------------------------------------- */
+  // Greeting follows the clock in New York, whatever timezone the browser is in.
+  function nyHour(now) {
+    return +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(now || new Date());
+  }
+  function nyToday(now) {
+    const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(now || new Date());
+    return parseDay(p);
+  }
+  function howText(app, me) {
+    const m = app.method;
+    if (m === "email") return "Please email it as a PDF to " + (app.email || "(address on your page)") + ', with the subject "' + subjectFor(app, me) + '".';
+    if (m === "portal") return "It goes through the upload link that " + app.institution + "'s system sent you (it may be in spam).";
+    if (m === "ajo") return "It goes through the upload link in the AcademicJobsOnline request email (it may be in spam).";
+    if (m === "joe") return "One upload to the AEA JOE Network covers this and all my other JOE applications.";
+    if (m === "ejm") return "One upload to EconJobMarket covers this and all my other EJM applications.";
+    if (m === "interfolio") return "One upload to my Interfolio Dossier covers this and all my other Interfolio applications.";
+    return "";
+  }
+  function composeNudge(state, writer, app, now) {
+    now = now || new Date();
+    const me = state.settings.me || "Blaize Giangiulio";
+    const h = nyHour(now);
+    const greet = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    const what = app.institution + " (" + app.title + ")";
+    const d = parseDay(app.deadline);
+    const n = d ? Math.round((d - nyToday(now)) / 864e5) : null;
+    const long = d ? d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) : "";
+    let line, subj;
+    if (n === null) { line = "This is a gentle reminder about the letter for " + what + "."; subj = "Gentle reminder: letter for " + app.institution; }
+    else if (n > 1) { line = "This is a gentle reminder that the letter for " + what + " is due in " + n + " days, on " + long + "."; subj = "Gentle reminder: letter for " + app.institution + " due in " + n + " days"; }
+    else if (n === 1) { line = "This is a gentle reminder that the letter for " + what + " is due tomorrow, " + long + "."; subj = "Gentle reminder: letter for " + app.institution + " due tomorrow"; }
+    else if (n === 0) { line = "This is a gentle reminder that the letter for " + what + " is due today, " + long + "."; subj = "Gentle reminder: letter for " + app.institution + " due today"; }
+    else { line = "This is a gentle reminder about the letter for " + what + ", which was due on " + long + ". If it's still possible to send it, that would be wonderful."; subj = "Gentle reminder: letter for " + app.institution; }
+    const L = [greet + ", " + (writer.first || writer.name) + ",", "", line];
+    const how = howText(app, me);
+    if (how) L.push(how);
+    const url = state.settings.portalUrl;
+    if (url) { L.push(""); L.push("Instructions are on your page, where you can also tick it off once it's sent:"); L.push(url + (url.includes("?") ? "&" : "?") + "u=" + encodeURIComponent(writer.email)); }
+    L.push(""); L.push("If you've already sent it, thank you, and please ignore this note.");
+    L.push(""); L.push("Best,"); L.push(me.split(" ")[0]);
+    return { to: writer.email, subject: subj, body: L.join("\n") };
+  }
+
   function bullet(app, me) {
     const due = app.deadline ? fmtDay(app.deadline) : "no deadline";
     let how = "";
@@ -408,7 +452,7 @@
 
   window.LP = {
     Backend, METHODS, METHOD_ORDER, ROLE_LABEL, DEFAULT_WRITERS,
-    stepsFor, subjectFor, suggestWriters, composeEmail,
+    stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge,
     parseDay, daysUntil, fmtDay, dueInfo,
     esc, norm, uid, safeUrl, copyText, mailto, gmail, sha256, blankState,
   };
