@@ -13,7 +13,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Other — Blaize Giangiulio</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="page">
@@ -27,7 +27,7 @@
       <a href="index.html">Home</a>
       <a href="research.html">Research</a>
       <a href="teaching.html">Teaching</a>
-      <a href="cv.pdf?v=20261012a" target="_blank" rel="noopener">CV</a>
+      <a href="cv.pdf?v=20261015a" target="_blank" rel="noopener">CV</a>
       <a href="other.html" class="current">Other</a>
     </nav>
   </header>
@@ -52,6 +52,31 @@
         Controller, and OpenStreetMap.
       </p>
       <p class="links"><a href="philly-atlas/" target="_blank" rel="noopener">Open the map &rarr;</a></p>
+    </div>
+
+    <div class="project">
+      <a class="shot" href="https://github.com/bgian123/arteries" target="_blank" rel="noopener">
+        <img src="images/arteries-nj.jpg" width="2000" height="1596" loading="lazy"
+             alt="New Jersey's road network before and after simplification: about 221,000 OpenStreetMap vertices reduced to 3,234 junctions with distances preserved exactly">
+      </a>
+      <p class="title"><a href="https://github.com/bgian123/arteries" target="_blank" rel="noopener">Arteries</a></p>
+      <p class="meta">Python package &middot; NumPy, SciPy, Numba, Slurm &middot; 2026</p>
+      <p class="desc">
+        Arteries computes the cheapest road-and-sea route between every pair of the world&rsquo;s
+        2,075 cities with more than 100,000 people, letting users price road kilometers, sea
+        kilometers, and port calls as they choose, and close chokepoints such as the Suez Canal or
+        the Bab el-Mandeb. Building it meant pulling road networks for 236 countries from the
+        OpenStreetMap Overpass API and fusing them with global shipping lanes, 1,804 IMF PortWatch
+        ports, and UN city data. A parallelized pipeline on Drexel&rsquo;s high-performance computing
+        cluster then strips the road network down to its junctions, removing about 99 percent of
+        nodes without changing a single shortest path. The result is exact, matching Dijkstra&rsquo;s
+        algorithm on the full global graph, yet it routes all 4.3 million city pairs in about 20
+        seconds on a laptop.
+      </p>
+      <p class="links">
+        <a href="https://github.com/bgian123/arteries" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+        <a href="arteries/" target="_blank" rel="noopener">Documentation &rarr;</a>
+      </p>
     </div>
   </main>
 
