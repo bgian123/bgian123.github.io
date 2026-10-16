@@ -1,0 +1,84 @@
+Proofreading notes: "Dynamic Distance, Trade, and Welfare" (version dated September 22, 2026)
+Page numbers are the printed PDF page numbers.
+
+LEFTOVER NOTES AND PLACEHOLDERS (remove before circulating)
+p.1   Abstract begins with "(NEWEST as of: 9/24/2025)."
+p.4   Bracketed coauthor note "[I think we should expand this explanation a little bit]" and the green reply text after it.
+p.11  Paragraph starting "Would be good to provide some a table of summary statistics..."
+p.14  Bracketed notes "[is there anything else interesting we can say here...]" and "[We should say something about the expected impact...]"
+p.17  Table 1: the note is a placeholder, the R2 row is empty, and column (8) shows "?" in every trade-agreement row.
+p.18  Bracketed note "[I think it would be helpful to try to include some measure of goodness of fit here...]"
+p.26  Unfinished sentence and note "[not sure what the intended interpretation of Xi_t and xi_i,t were.]"
+p.27  Bracketed notes about "baseline"/"historic" and "[Don't we need a specification that includes intranational trade for the GE model?]"
+
+BROKEN REFERENCES
+p.27  "Using ?'s (2008) hat algebra": broken citation.
+p.29  Figure 3 caption: "equation (??)" and "(Table ?? column 10)".
+p.30  Table 3 caption: "(Table ?? Panel B, Column 10)". It also disagrees with p.27, which says the estimates come from "column 4 of table 1".
+p.16  "presented in 1." should be "presented in Table 1."
+p.13  "Figure 3 depicts how each country's distance from the United States..." should be Figure 1.
+p.28  "Figure 2 displays maps of the percent changes in welfare" and "figure two" should be Figure 3.
+Tables 2 and 4 cite Equations (3)-(8), which are the GE equations. The regression is Eq. (2).
+p.32  Table 4 Panel B, column 1: the coefficient cell reads "823,939", which looks like an observation count.
+
+NUMBERS THAT DON'T MATCH
+Abstract: "-1.5 to +2.5%", but Table 3 runs from -1.380 (MEX) to +2.409 (CAN), and the intro says Canada +2.4 and Mexico -1.4. The site and CV now say "-1.4% to +2.4%".
+City counts: p.3 says 6,162 cities in 235 countries; p.10 says 16,309 cities in 237 countries; p.9 says about 1,860 UN cities; p.12 says around 1,800.
+End year: p.13 says 1950 to 2023; pp.3, 9 and 12 say 1950 to 2024.
+p.13  "just over 2.1 million country pairs" is too many for pairs; probably country-pair-year observations.
+Time span: the abstract says "last 60 years", p.3 says "last 75 years", and the data cover 1950-2024.
+p.12  The text defines "dmn" but Eq. (1) uses delta_mn.
+p.33  The conclusion says the measure improves on great-circle distance, but p.12 says you already use Karney geodesic distances.
+p.4   The section roadmap doesn't match the paper's actual section numbers.
+p.33  "my populations dataset" should be "our population dataset".
+
+SPELLING AND TYPOS
+p.2   inversly -> inversely
+p.2   geospacial -> geospatial
+p.3   "over the the last 75 years"
+p.12  "the UN data data provides"
+p.21  "the other other three groups"
+p.24  "the the relationship"
+p.26  "the the trading partner"
+p.7   "came to be know as" -> known
+p.19  exogeneous -> exogenous
+p.8   Carrere needs the accent: Carrère
+p.11  "where a county is not present" -> country
+p.26  "can effect exports" -> affect
+p.20  "the omission of some many large" -> so many
+p.21  "distance between two developing countries in negative" -> is negative
+p.4   "distance.The second" (missing space)
+p.20  "(L-L).Here" (missing space)
+p.3   The site is citypopulation.de, not citypopulations.de, and Brinkhoff is cited twice in the same sentence.
+p.12  Stray character before the period in "ellipsoidal shape ."
+
+GRAMMAR
+p.2   "the literature using these types of measures have" -> has
+p.4   "Our work primarily build upon" -> builds
+p.10  "the time periods ... is inconsistent" -> are
+p.10  "computation of on internal distance" -> of internal distance
+p.6   "equal 1/4 of it's smallest" -> equal to 1/4 of its smallest
+p.6   "in an consistent way" -> a consistent way
+p.5   "within a country within each country" (redundant)
+p.8   "contiguity common language" -> contiguity or common language
+p.11  "we had supplement the data" -> had to supplement
+p.11  "the cities that for which" -> the cities for which
+p.15  "trade domestic flows" -> domestic trade flows
+p.15  "and collection of typical gravity controls" -> and a collection
+p.20  "we remove top five trading pairs" -> the top five
+p.25  "on structural gravity system" -> on the structural gravity system
+p.33  "highly developed countries ability" -> countries' ability
+p.24  "The positive terms are expected to be positive" -> "The intranational terms..."
+
+STYLE AND CONSISTENCY
+"Section three / section four": use Section 3, Section 4, and so on. Same for "table 1" vs "Table 1".
+"time varying" (pp.9, 14, 16) vs "time-varying": use the hyphen throughout.
+Headings mix sentence case and title case.
+overtime -> over time (pp.8, 24)
+1980's or 90's -> 1980s or '90s
+c.f. -> cf.
+in-line with -> in line with
+wide-range of -> wide range of
+poisson-pseudo maximum likelihood -> Poisson pseudo-maximum likelihood
+resolve the model -> re-solve
+Author line: "James E Anderson" -> "James E. Anderson"; "Yoto Yotov" -> "Yoto V. Yotov"
