@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   const { Backend, METHODS, METHOD_ORDER, ROLE_LABEL, stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge, composeDelegateEmail, composeDelegateNudge,
-    recipientOf, versionsOf, versionFor, autoVersion, letterLabel,
+    recipientOf, versionsOf, versionFor, autoVersion, letterLabel, letterFile,
     fmtDay, dueInfo, esc, uid, safeUrl, copyText, mailto, gmail, sha256 } = LP;
   const $ = (id) => document.getElementById(id);
   const POSTINGS = window.JOE_POSTINGS || [];
@@ -364,7 +364,7 @@
     $("verPick").innerHTML = ws.map((w) => {
       const cur = versionFor(draft, w), auto = autoVersion(draft, w);
       return '<label class="field" style="max-width:24rem"><span>Which ' + esc(w.first || w.name) + " letter</span><select data-ver=\"" + esc(w.id) + '">' +
-        versionsOf(w).map((v) => '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + ">" + esc(v) + (v === auto ? " (suggested)" : "") + "</option>").join("") + "</select></label>";
+        versionsOf(w).map((v) => '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + ">" + esc(letterFile(v).name + (letterFile(v).file ? " — " + letterFile(v).file : "")) + (v === auto ? " (suggested)" : "") + "</option>").join("") + "</select></label>";
     }).join("");
   }
 

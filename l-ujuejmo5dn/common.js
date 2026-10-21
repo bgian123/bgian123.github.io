@@ -477,7 +477,18 @@
     return pick(/research/i) || pick(/academic/i) || vs[0];
   }
   function versionFor(app, w) { return ((app.versions || {})[w.id]) || autoVersion(app, w); }
-  function letterLabel(app, w) { const v = versionFor(app, w); return (w.first || w.name) + (v ? " — " + v + " letter" : ""); }
+  // Yoto's three letters are saved as Letter_Giangiulio_IG / _AR / _AT; name the exact file so Michele sends the right one.
+  function letterFile(v) {
+    if (/teach/i.test(v)) return { name: "Academic (teaching)", file: "Letter_Giangiulio_AT" };
+    if (/research/i.test(v)) return { name: "Academic (research)", file: "Letter_Giangiulio_AR" };
+    if (/industry|government/i.test(v)) return { name: "Industry/Government", file: "Letter_Giangiulio_IG" };
+    return { name: v, file: "" };
+  }
+  function letterLabel(app, w) {
+    const v = versionFor(app, w); if (!v) return w.first || w.name;
+    const f = letterFile(v);
+    return (w.first || w.name) + " — " + f.name + " letter" + (f.file ? " (file: " + f.file + ")" : "");
+  }
 
   // How the assistant should send letters for this application (plain text).
   function delegateHow(app, me) {
@@ -558,7 +569,7 @@
   window.LP = {
     Backend, METHODS, METHOD_ORDER, ROLE_LABEL, DEFAULT_WRITERS,
     stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge, composeDelegateEmail, composeDelegateNudge,
-    recipientOf, versionsOf, autoVersion, versionFor, letterLabel, delegateHow,
+    recipientOf, versionsOf, autoVersion, versionFor, letterLabel, letterFile, delegateHow,
     parseDay, daysUntil, fmtDay, dueInfo,
     esc, norm, uid, safeUrl, copyText, mailto, gmail, sha256, blankState,
   };
