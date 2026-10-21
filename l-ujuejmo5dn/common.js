@@ -159,12 +159,21 @@
   try { adminKey = sessionStorage.getItem(KEY_SLOT) || ""; } catch (e) {}
 
   async function call(action, payload) {
+    const req = Object.assign({ action, key: adminKey }, payload || {});
+    // Served from Apps Script itself (Michele's page): talk to the backend directly, no network fetch.
+    if (window.google && google.script && google.script.run) {
+      const raw = await new Promise((ok, bad) => google.script.run.withSuccessHandler(ok)
+        .withFailureHandler(() => bad(new Error("Can't reach the letter server. Check your connection and try again."))).api(JSON.stringify(req)));
+      const j = JSON.parse(raw);
+      if (!j.ok) { const err = new Error(j.error || "Server error"); err.code = j.code; throw err; }
+      return j.data;
+    }
     let r;
     try {
       r = await fetch(CFG.apiUrl, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },  // keeps it a "simple" request (no CORS preflight)
-        body: JSON.stringify(Object.assign({ action, key: adminKey }, payload || {})),
+        body: JSON.stringify(req),
         redirect: "follow",
       });
     } catch (e) { throw new Error("Can't reach the letter server. Check your connection and try again."); }
@@ -504,6 +513,12 @@
   }
 
   // items: [{ app, writers: [writer objects] }]
+  // Michele's page is served by the Apps Script (script.google.com), which Drexel's network allows.
+  function assistantUrl(state) {
+    if (state.settings.assistantPortalUrl) return state.settings.assistantPortalUrl;
+    return /^https:\/\/script\.google\.com\//.test(CFG.apiUrl || "") ? CFG.apiUrl : state.settings.portalUrl;
+  }
+
   function composeDelegateEmail(state, delegate, items, opts) {
     opts = opts || {};
     const me = state.settings.me || "Blaize Giangiulio";
@@ -521,7 +536,7 @@
     if (groups.each.length) { L.push("LETTERS TO SEND (" + groups.each.length + ")"); groups.each.forEach((it) => L.push(line(it))); L.push(""); }
     if (groups.once.length) { L.push("COVERED BY ONE-TIME PLATFORM UPLOADS (" + groups.once.length + ")"); groups.once.forEach((it) => L.push(line(it))); L.push(""); }
     if (groups.later.length) { L.push("NOTHING TO SEND YET — only if I'm shortlisted (" + groups.later.length + ")"); groups.later.forEach((it) => L.push(line(it))); L.push(""); }
-    const url = state.settings.portalUrl;
+    const url = assistantUrl(state);
     if (url) {
       L.push("Your page lists each application with a box to tick for each writer once their letter is sent:");
       L.push(url + (url.includes("?") ? "&" : "?") + "u=" + encodeURIComponent(delegate.email));
@@ -559,7 +574,7 @@
     if (n !== null && n < 0) { L.push(""); L.push("If it's still possible to send " + it + ", that would be wonderful."); }
     const how = delegateHow(app, me);
     if (how) { L.push(""); L.push(how.charAt(0).toUpperCase() + how.slice(1) + "."); }
-    const url = state.settings.portalUrl;
+    const url = assistantUrl(state);
     if (url) { L.push(""); L.push("Your page has the details, and a box to tick for each letter once it's sent:"); L.push(url + (url.includes("?") ? "&" : "?") + "u=" + encodeURIComponent(delegate.email)); }
     L.push(""); L.push("If you've already sent " + it + ", thank you, and please ignore this note.");
     L.push(""); L.push("Best,"); L.push(me.split(" ")[0]);

@@ -320,7 +320,7 @@
   Backend.onChange(() => render());
 
   /* ---------- start -------------------------------------------- */
-  const qp = new URLSearchParams(location.search).get("u");
-  const start = qp || remembered();
-  if (start) signIn(start, !qp); else showSignin("");
+  function begin(qp) { const start = qp || remembered(); if (start) signIn(start, !qp); else showSignin(""); }
+  if (window.google && google.script && google.script.url) google.script.url.getLocation((loc) => begin((loc.parameter || {}).u));
+  else begin(new URLSearchParams(location.search).get("u"));
 })();

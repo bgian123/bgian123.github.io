@@ -65,8 +65,18 @@ function setup() {
 
 /* ---------------- web entry points -------------------------------- */
 
+// Opening the web-app URL in a browser shows the writer page (used for Michele, since Drexel's
+// network blocks blaizegiangiulio.com). Needs the Portal.html file next to this one.
 function doGet() {
-  return ContentService.createTextOutput("Letter Desk backend is running.");
+  return HtmlService.createHtmlOutputFromFile("Portal")
+    .setTitle("Letters — Blaize Giangiulio")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
+
+// Called by Portal.html through google.script.run (same rules as doPost).
+function api(json) {
+  try { return JSON.stringify({ ok: true, data: handle_(JSON.parse(json)) }); }
+  catch (err) { return JSON.stringify({ ok: false, error: String(err && err.message || err), code: err && err.code }); }
 }
 
 function doPost(e) {
