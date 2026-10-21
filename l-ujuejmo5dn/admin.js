@@ -2,7 +2,8 @@
    edit where letters go, and send writers their updates. */
 (function () {
   "use strict";
-  const { Backend, METHODS, METHOD_ORDER, ROLE_LABEL, stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge,
+  const { Backend, METHODS, METHOD_ORDER, ROLE_LABEL, stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge, composeDelegateEmail, composeDelegateNudge,
+    recipientOf, versionsOf, versionFor, autoVersion, letterLabel,
     fmtDay, dueInfo, esc, uid, safeUrl, copyText, mailto, gmail, sha256 } = LP;
   const $ = (id) => document.getElementById(id);
   const POSTINGS = window.JOE_POSTINGS || [];
@@ -41,8 +42,27 @@
     } else { $("gateErr").textContent = "That's not it."; $("pw").select(); }
   });
 
+  // One-time switch-over: Michele Sykes submits letters for Yoto, Costas and Mark.
+  async function ensureDelegate() {
+    if (S.settings.delegateSetup === "done") return;
+    if (!S.writers.some((w) => w.via)) {
+      const list = S.writers.map((w) => Object.assign({}, w, {
+        via: ["yotov", "syropoulos", "stehr"].includes(w.id) ? "sykes" : "",
+        versions: w.id === "yotov" && !w.versions ? "Industry, Academic (research), Academic (teaching)" : (w.versions || ""),
+      }));
+      if (!list.some((w) => w.id === "sykes")) list.push({ id: "sykes", name: "Michele Sykes", first: "Michele", greet: "Dear Michele", email: "mms25@drexel.edu", role: "delegate", via: "", versions: "" });
+      await Backend.saveWriters(list);
+      await load();
+      // an older backend silently drops the new columns: don't mark done until they stick
+      if (!S.writers.some((w) => w.via === "sykes")) { toast("Update the Apps Script (backend/Code.gs) to finish adding Michele"); return; }
+    }
+    await Backend.saveSettings({ delegateSetup: "done" });
+    await load();
+  }
+
   async function start() {
     await load();
+    await ensureDelegate();
     $("gate").hidden = true; $("main").hidden = false; $("tabs").hidden = false;
     fillMethodFilter();
     switchTab(S.apps.length ? "apps" : "postings");
@@ -59,7 +79,8 @@
   function renderCounts() {
     $("cApps").textContent = S.apps.length ? "(" + S.apps.length + ")" : "";
     $("cPost").textContent = "(" + POSTINGS.length + ")";
-    const n = S.writers.filter((w) => pendingFor(w).length).length;
+    const n = S.writers.filter((r) => (r.role === "delegate" ? S.writers.filter((x) => x.via === r.id) : recipientOf(S.writers, r) === r ? [r] : [])
+      .some((w) => pendingFor(w).length)).length;
     $("cNotify").textContent = n ? "(" + n + ")" : "";
   }
   async function refresh() { await load(); renderAll(); }
@@ -116,10 +137,13 @@
     h += '<h3 id="edTitle">Nudge: ' + esc(a.institution) + "</h3>";
     h += '<p class="sec">' + esc(a.title) + " · " + (a.deadline ? "due " + esc(fmtDay(a.deadline, true)) + " (" + esc(dueInfo(a.deadline).text) + ")" : "no deadline") + "</p>";
     if (!ws.length) h += '<p class="allclear">Every writer has sent this one.</p>';
-    ws.forEach((w) => {
-      const m = composeNudge(S, w, a);
-      const last = S.reminded[a.id + "|" + w.id];
+    const groups = [];
+    ws.forEach((x) => { const r = recipientOf(S.writers, x); let g = groups.find((g) => g.r.id === r.id); if (!g) groups.push(g = { r, ws: [] }); g.ws.push(x); });
+    groups.forEach(({ r: w, ws: gws }) => {
+      const m = w.role === "delegate" ? composeDelegateNudge(S, w, a, gws) : composeNudge(S, w, a);
+      const last = gws.map((x) => S.reminded[a.id + "|" + x.id]).filter(Boolean).sort().pop();
       h += '<div class="notify-card" data-nudge-writer="' + esc(w.id) + '"><header><h4>' + esc(w.name) + ' <span class="sans small muted">' + esc(w.email || "no email!") + "</span></h4>" +
+        (w.role === "delegate" ? '<p class="sans small muted" style="margin:0.2rem 0 0">Submits for ' + esc(gws.map((x) => letterLabel(a, x)).join("; ")) + "</p>" : "") +
         '<span class="sans small muted">' + (last ? "Last nudged " + esc(fmtDay(last.slice(0, 10))) : "Not nudged yet") + "</span></header>" +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(m.subject) + '"></label>' +
         '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="11">' + esc(m.body) + "</textarea></label>" +
@@ -133,6 +157,7 @@
     $("drawer").innerHTML = h;
     $("drawer").querySelectorAll("[data-nudge-writer]").forEach((card) => {
       const w = S.writers.find((x) => x.id === card.dataset.nudgeWriter);
+      const covers = groups.find((g) => g.r.id === w.id).ws;
       card.addEventListener("click", async (e) => {
         const b = e.target.closest("[data-nsend]"); if (!b) return;
         const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
@@ -147,7 +172,7 @@
           try { await Backend.sendEmail({ to: w.email, subject: subj, body }); }
           catch (err) { toast(err.message); b.disabled = false; b.textContent = "Send nudge"; return; }
         }
-        await Backend.markReminded(w.id, [a.id]);
+        for (const x of covers) await Backend.markReminded(x.id, [a.id]);
         card.querySelector("header .muted:last-child").textContent = "Nudged just now";
         if (b.dataset.nsend === "server") { b.textContent = "Sent ✓"; toast("Nudge sent to " + (w.first || w.name)); }
         load();
@@ -267,8 +292,11 @@
     const methodOpts = METHOD_ORDER.map((m) => '<option value="' + m + '"' + (draft.method === m ? " selected" : "") + ">" + esc(METHODS[m].label) +
       ({ once: " — one upload covers all", each: " — writer acts per application", later: " — only if shortlisted", none: "" }[METHODS[m].kind] || "") + "</option>").join("");
     const letterOpts = [0, 1, 2, 3, 4, 5].map((n) => '<option value="' + n + '"' + (draft.letters == n ? " selected" : "") + ">" + n + "</option>").join("");
-    const writers = S.writers.map((w) => '<label><input type="checkbox" data-w="' + esc(w.id) + '"' + ((draft.writers || []).includes(w.id) ? " checked" : "") + "> " +
-      esc(w.name) + ' <span class="role">' + esc(ROLE_LABEL[w.role] || "") + (w.email ? "" : " · no email!") + "</span></label>").join("");
+    const viaName = (w) => { const r = recipientOf(S.writers, w); return r !== w ? " · sent by " + (r.first || r.name) : ""; };
+    const writers = S.writers.filter((w) => w.role !== "delegate").map((w) => '<label><input type="checkbox" data-w="' + esc(w.id) + '"' + ((draft.writers || []).includes(w.id) ? " checked" : "") + "> " +
+      esc(w.name) + ' <span class="role">' + esc(ROLE_LABEL[w.role] || "") + esc(viaName(w)) + (w.email ? "" : " · no email!") + "</span></label>").join("");
+    draft.versions = draft.versions || {};
+    verKey = null;
 
     let h = '<button class="btn quiet close" type="button" data-close>Close ✕</button>';
     h += '<h3 id="edTitle">' + esc(draft.institution || "New application") + "</h3>";
@@ -293,6 +321,7 @@
       '<label class="field" data-only="email"><span>Send letters to (email)</span><input type="email" name="email" placeholder="search@university.edu"></label></div>';
     h += '<label class="field" data-only="email"><span>Email subject for writers</span><input type="text" name="subject" placeholder="' + esc(subjectFor(Object.assign({}, draft, { subject: "" }), S.settings.me)) + '"></label>';
     h += '<label class="field"><span>Letter writers</span></label><div class="writers-pick" id="wPick">' + writers + "</div>";
+    h += '<div id="verPick"></div>';
     h += '<p class="rulehint"><label style="display:inline-flex;gap:0.4rem;align-items:center"><input type="checkbox" name="teaching"' + (draft.teaching ? " checked" : "") +
       "> Teaching-focused job</label> · <span id=\"ruleText\"></span> <button class=\"btn quiet small\" type=\"button\" id=\"applyRule\">Use rule</button></p>";
     h += '<label class="field"><span>Extra step for writers (optional)</span><input type="text" name="instructions" placeholder="e.g. Address the letter to Prof. Smith, Search Chair"></label>';
@@ -325,12 +354,29 @@
     f.elements.institution.value ? f.elements.deadline.focus() : f.elements.institution.focus();
   }
 
+  // Which version of a writer's letter to send (e.g. Yoto: Industry / Academic (research) / Academic (teaching)).
+  let verKey = null;
+  function renderVerPick(force) {
+    const ws = S.writers.filter((w) => draft.writers.includes(w.id) && versionsOf(w).length);
+    const key = ws.map((w) => w.id).join(",");
+    if (!force && key === verKey) return;
+    verKey = key;
+    $("verPick").innerHTML = ws.map((w) => {
+      const cur = versionFor(draft, w), auto = autoVersion(draft, w);
+      return '<label class="field" style="max-width:24rem"><span>Which ' + esc(w.first || w.name) + " letter</span><select data-ver=\"" + esc(w.id) + '">' +
+        versionsOf(w).map((v) => '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + ">" + esc(v) + (v === auto ? " (suggested)" : "") + "</option>").join("") + "</select></label>";
+    }).join("");
+  }
+
   function syncDraft(e) {
     const f = $("edForm"); if (!f) return;
+    document.querySelectorAll("#verPick [data-ver]").forEach((sel) => { draft.versions[sel.dataset.ver] = sel.value; });
     ["institution", "title", "department", "location", "deadline", "appliedOn", "deadlineNote", "method", "url", "email", "subject", "instructions", "note", "adText"]
       .forEach((k) => (draft[k] = f.elements[k].value.trim()));
     draft.letters = +f.elements.letters.value;
+    const teachingChanged = draft.teaching !== f.elements.teaching.checked;
     draft.teaching = f.elements.teaching.checked;
+    if (teachingChanged) draft.versions = {};   // re-suggest which letter version fits
     // letters / teaching changed by hand → re-suggest writers
     if (e && e.type === "change" && (e.target.name === "letters" || e.target.name === "teaching")) {
       draft.writers = suggestWriters(S.writers, draft.letters, draft.teaching);
@@ -338,6 +384,9 @@
     } else {
       draft.writers = [...document.querySelectorAll("#wPick [data-w]")].filter((c) => c.checked).map((c) => c.dataset.w);
     }
+    renderVerPick(teachingChanged);
+    document.querySelectorAll("#verPick [data-ver]").forEach((sel) => { draft.versions[sel.dataset.ver] = sel.value; });
+    Object.keys(draft.versions).forEach((id) => { if (!draft.writers.includes(id)) delete draft.versions[id]; });
     document.querySelectorAll("[data-only]").forEach((el) => (el.style.display = el.dataset.only === draft.method ? "" : "none"));
     const sug = suggestWriters(S.writers, draft.letters, draft.teaching);
     const names = sug.map((id) => (S.writers.find((w) => w.id === id) || {}).first).join(", ");
@@ -390,36 +439,66 @@
       ? "<strong>Test mode:</strong> each email opens pre-filled in Gmail or your mail app, and you press send. Then click <em>Mark as emailed</em> so it isn't sent twice. Once the Google Sheet backend is connected, the Send button emails them for you."
       : "Each <strong>Send</strong> emails the writer from your Gmail" + (S.settings.cc ? ", with " + esc(S.settings.cc) + " on cc" : "") +
         ". Interfolio applications never appear here, because Interfolio asks for the letter itself. Neither do JOE or EJM applications once the writer has ticked that upload.") + holdNote;
+    // One card per person who receives email: writers who submit their own letters, and assistants
+    // (who get everything for the writers they submit for). Pairs are {app, w}.
+    const remindable = (a, w) => S.notified[a.id + "|" + w.id] && writerStatus(a, w) !== "done" && kindOf(a) === "each" &&
+      a.deadline && dueInfo(a.deadline).n >= 0 && dueInfo(a.deadline).n <= 10 &&
+      !recent(S.reminded[a.id + "|" + w.id], 4) && !recent(S.notified[a.id + "|" + w.id], 4);
     const out = [];
-    S.writers.forEach((w) => {
-      const pend = pendingFor(w);
-      const reminders = S.apps.filter((a) => (a.writers || []).includes(w.id) && S.notified[a.id + "|" + w.id] && writerStatus(a, w) !== "done" &&
-        kindOf(a) === "each" && a.deadline && dueInfo(a.deadline).n >= 0 && dueInfo(a.deadline).n <= 10 &&
-        !recent(S.reminded[a.id + "|" + w.id], 4) && !recent(S.notified[a.id + "|" + w.id], 4));
-      if (!pend.length && !reminders.length) return;
-      out.push({ w, pend, reminders });
+    S.writers.forEach((r) => {
+      if (r.role !== "delegate" && recipientOf(S.writers, r) !== r) return;   // their mail goes to the assistant
+      const ws = r.role === "delegate" ? S.writers.filter((x) => x.via === r.id) : [r];
+      const pend = [], rems = [];
+      ws.forEach((w) => {
+        pendingFor(w).forEach((a) => pend.push({ app: a, w }));
+        S.apps.filter((a) => (a.writers || []).includes(w.id) && remindable(a, w)).forEach((a) => rems.push({ app: a, w }));
+      });
+      if (!pend.length && !rems.length) return;
+      out.push({ r, delegate: r.role === "delegate", pend, rems });
     });
+    const appsOf = (pairs) => [...new Map(pairs.map((p) => [p.app.id, p.app])).values()];
+    const itemsOf = (pairs) => appsOf(pairs).map((a) => ({ app: a, writers: pairs.filter((p) => p.app.id === a.id).map((p) => p.w) }));
+    function compose(c, withRem) {
+      if (c.delegate) {
+        if (!c.pend.length) {
+          const m = composeDelegateEmail(S, c.r, itemsOf(c.rems), { intro: "A quick reminder — these letters are due in the next ten days:" });
+          m.subject = "Reminder: letters due soon"; return m;
+        }
+        return composeDelegateEmail(S, c.r, itemsOf(withRem ? c.pend.concat(c.rems) : c.pend));
+      }
+      if (!c.pend.length) {
+        const m = composeEmail(S, c.r, appsOf(c.rems), {});
+        m.subject = "Reminder: " + c.rems.length + " letter" + (c.rems.length > 1 ? "s" : "") + " due soon";
+        m.body = m.body.replace(/^I've submitted.*$/m, "A quick reminder — these are due in the next ten days:");
+        return m;
+      }
+      return composeEmail(S, c.r, appsOf(c.pend), { reminders: withRem ? appsOf(c.rems) : [] });
+    }
+    async function markDone(c, remSent) {
+      const byW = (pairs) => { const m = {}; pairs.forEach((p) => (m[p.w.id] = m[p.w.id] || []).push(p.app.id)); return m; };
+      const pn = byW(c.pend), rn = byW(c.rems);
+      for (const id of Object.keys(pn)) await Backend.markNotified(id, pn[id]);
+      if (remSent) for (const id of Object.keys(rn)) await Backend.markReminded(id, rn[id]);
+    }
     if (!out.length) {
-      $("notifyList").innerHTML = '<p class="allclear">Every writer is up to date.</p>';
+      $("notifyList").innerHTML = '<p class="allclear">Everyone is up to date.</p>';
       return;
     }
-    $("notifyList").innerHTML = out.map(({ w, pend, reminders }, i) => {
-      const withRem = !pend.length && reminders.length;
-      const mail = pend.length
-        ? composeEmail(S, w, pend, { reminders: [] })
-        : composeEmail(S, w, reminders, {});
-      if (withRem) { mail.subject = "Reminder: " + reminders.length + " letter" + (reminders.length > 1 ? "s" : "") + " due soon"; mail.body = mail.body.replace(/^I've submitted.*$/m, "A quick reminder — these are due in the next ten days:"); }
-      return '<div class="notify-card" data-i="' + i + '" data-writer="' + esc(w.id) + '">' +
-        "<header><h4>" + esc(w.name) + ' <span class="sub sans small muted">' + esc(w.email || "no email address!") + "</span></h4>" +
-        '<span class="sans small muted">' + (pend.length ? pend.length + " new application" + (pend.length > 1 ? "s" : "") : "") +
-        (pend.length && reminders.length ? " · " : "") + (reminders.length ? reminders.length + " due within 10 days" : "") + "</span></header>" +
-        (pend.length && reminders.length ? '<label class="inline sans small muted" style="display:inline-flex;gap:0.35rem;margin-top:0.4rem"><input type="checkbox" data-rem> Also remind about the ' + reminders.length + " open letter" + (reminders.length > 1 ? "s" : "") + " due soon</label>" : "") +
+    $("notifyList").innerHTML = out.map((c, i) => {
+      const mail = compose(c, false);
+      const nP = appsOf(c.pend).length, nR = appsOf(c.rems).length;
+      const forWho = c.delegate ? '<p class="sans small muted" style="margin:0.25rem 0 0">Submits letters for ' + esc(S.writers.filter((x) => x.via === c.r.id).map((x) => x.first || x.name).join(", ")) + "</p>" : "";
+      return '<div class="notify-card" data-i="' + i + '" data-writer="' + esc(c.r.id) + '">' +
+        "<header><h4>" + esc(c.r.name) + ' <span class="sub sans small muted">' + esc(c.r.email || "no email address!") + "</span></h4>" +
+        '<span class="sans small muted">' + (nP ? nP + " new application" + (nP > 1 ? "s" : "") : "") +
+        (nP && nR ? " · " : "") + (nR ? nR + " due within 10 days" : "") + "</span></header>" + forWho +
+        (nP && nR ? '<label class="inline sans small muted" style="display:inline-flex;gap:0.35rem;margin-top:0.4rem"><input type="checkbox" data-rem> Also remind about the ' + nR + " open application" + (nR > 1 ? "s" : "") + " due soon</label>" : "") +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(mail.subject) + '"></label>' +
-        '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="12">' + esc(mail.body) + "</textarea></label>" +
+        '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="14">' + esc(mail.body) + "</textarea></label>" +
         '<div class="btns" style="margin-top:0.6rem">' +
         (Backend.mode === "live"
-          ? (blocked(w)
-            ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed" title="Emails to writers are on hold (Data tab)">Send — on hold</button>'
+          ? (blocked(c.r)
+            ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed" title="Emails are on hold (Data tab)">Send — on hold</button>'
             : '<button class="btn" type="button" data-send="server">Send' + (S.settings.cc ? " (cc " + esc(S.settings.cc) + ")" : "") + "</button>")
           : '<button class="btn" type="button" data-send="gmail">Open in Gmail ↗</button>' +
             '<button class="btn ghost" type="button" data-send="mailto">Open in mail app</button>') +
@@ -427,26 +506,22 @@
         '<button class="btn quiet" type="button" data-mark style="margin-left:auto">Mark as emailed</button></div></div>';
     }).join("");
     $("notifyList").querySelectorAll(".notify-card").forEach((card) => {
-      const { w, pend, reminders } = out[+card.dataset.i];
+      const c = out[+card.dataset.i], w = c.r;
       const rem = card.querySelector("[data-rem]");
-      if (rem) rem.addEventListener("change", () => {
-        const m = composeEmail(S, w, pend, { reminders: rem.checked ? reminders : [] });
-        card.querySelector("[data-body]").value = m.body;
-      });
+      if (rem) rem.addEventListener("change", () => { card.querySelector("[data-body]").value = compose(c, rem.checked).body; });
       card.addEventListener("click", async (e) => {
         const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
+        const remSent = !c.pend.length || (rem && rem.checked);
         const s = e.target.closest("[data-send]");
         if (s) {
           if (!w.email) { toast("Add " + w.first + "'s email on the Writers tab first"); return; }
           if (s.dataset.send === "server") {
-            if (blocked(w)) { toast("Emails to writers are on hold (Data tab)"); return; }
+            if (blocked(w)) { toast("Emails are on hold (Data tab)"); return; }
             if (!confirm("Send this email to " + w.email + (S.settings.cc ? " (cc " + S.settings.cc + ")" : "") + "?")) return;
             s.disabled = true; s.textContent = "Sending…";
             try { await Backend.sendEmail({ to: w.email, subject: subj, body }); }
             catch (err) { toast(err.message); s.disabled = false; s.textContent = "Send"; return; }
-            if (pend.length) await Backend.markNotified(w.id, pend.map((a) => a.id));
-            const remSent = !pend.length || (rem && rem.checked);
-            if (remSent && reminders.length) await Backend.markReminded(w.id, reminders.map((a) => a.id));
+            await markDone(c, remSent);
             toast("Sent to " + (w.first || w.name)); refresh();
             return;
           }
@@ -455,12 +530,7 @@
           if (s.dataset.send === "copy") copyText("To: " + w.email + "\nSubject: " + subj + "\n\n" + body, s);
           return;
         }
-        if (e.target.closest("[data-mark]")) {
-          if (pend.length) await Backend.markNotified(w.id, pend.map((a) => a.id));
-          const remSent = !pend.length || (rem && rem.checked);
-          if (remSent && reminders.length) await Backend.markReminded(w.id, reminders.map((a) => a.id));
-          toast("Marked as emailed"); refresh();
-        }
+        if (e.target.closest("[data-mark]")) { await markDone(c, remSent); toast("Marked as emailed"); refresh(); }
       });
     });
   }
@@ -468,13 +538,18 @@
   /* ---------- Writers tab -------------------------------------- */
   function renderWriters() {
     const roleOpts = (r) => Object.keys(ROLE_LABEL).map((k) => '<option value="' + k + '"' + (k === r ? " selected" : "") + ">" + esc(ROLE_LABEL[k]) + "</option>").join("");
-    $("wTable").innerHTML = "<thead><tr><th>Full name</th><th>Called</th><th>Email greeting</th><th>Email (sign-in)</th><th>Role</th><th></th></tr></thead><tbody>" +
+    const delegates = S.writers.filter((w) => w.role === "delegate");
+    const viaOpts = (w) => '<option value="">Themselves</option>' + delegates.filter((d) => d.id !== w.id).map((d) =>
+      '<option value="' + esc(d.id) + '"' + (w.via === d.id ? " selected" : "") + ">" + esc(d.name) + "</option>").join("");
+    $("wTable").innerHTML = "<thead><tr><th>Full name</th><th>Called</th><th>Email greeting</th><th>Email (sign-in)</th><th>Role</th><th>Letters sent by</th><th>Letter versions</th><th></th></tr></thead><tbody>" +
       S.writers.map((w, i) => '<tr data-row="' + i + '" data-id="' + esc(w.id) + '">' +
         '<td><input type="text" data-k="name" value="' + esc(w.name) + '"></td>' +
         '<td><input type="text" data-k="first" value="' + esc(w.first) + '"></td>' +
         '<td><input type="text" data-k="greet" value="' + esc(w.greet || "") + '"></td>' +
         '<td><input type="email" data-k="email" value="' + esc(w.email) + '" placeholder="needed to sign in"></td>' +
         '<td><select data-k="role">' + roleOpts(w.role) + "</select></td>" +
+        '<td>' + (w.role === "delegate" ? '<input type="hidden" data-k="via" value=""><span class="sub">—</span>' : '<select data-k="via">' + viaOpts(w) + "</select>") + "</td>" +
+        '<td><input type="text" data-k="versions" value="' + esc(w.versions || "") + '" placeholder="optional, comma-separated" title="e.g. Industry, Academic (research), Academic (teaching)"></td>' +
         '<td class="act"><a class="btn quiet small" href="index.html?u=' + encodeURIComponent(w.email || "") + '" target="_blank" rel="noopener">View as ↗</a></td></tr>').join("") + "</tbody>";
   }
   function readWriters() {

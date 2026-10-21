@@ -16,10 +16,11 @@
   /* ---------- defaults ----------------------------------------- */
 
   const DEFAULT_WRITERS = [
-    { id: "yotov", name: "Yoto V. Yotov", first: "Yoto", greet: "Dear Yoto", email: "yvy23@drexel.edu", role: "core" },
-    { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core" },
-    { id: "kwon", name: "Ohyun Kwon", first: "Ohyun", greet: "Dear Ohyun", email: "theekwonomist@gmail.com", role: "research" },
-    { id: "stehr", name: "Mark Stehr", first: "Mark", greet: "Dear Mark", email: "ms424@drexel.edu", role: "teaching" },
+    { id: "yotov", name: "Yoto V. Yotov", first: "Yoto", greet: "Dear Yoto", email: "yvy23@drexel.edu", role: "core", via: "sykes", versions: "Industry, Academic (research), Academic (teaching)" },
+    { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core", via: "sykes", versions: "" },
+    { id: "kwon", name: "Ohyun Kwon", first: "Ohyun", greet: "Dear Ohyun", email: "theekwonomist@gmail.com", role: "research", via: "", versions: "" },
+    { id: "stehr", name: "Mark Stehr", first: "Mark", greet: "Dear Mark", email: "ms424@drexel.edu", role: "teaching", via: "sykes", versions: "" },
+    { id: "sykes", name: "Michele Sykes", first: "Michele", greet: "Dear Michele", email: "mms25@drexel.edu", role: "delegate", via: "", versions: "" },
   ];
 
   const ROLE_LABEL = {
@@ -27,6 +28,7 @@
     research: "3rd letter, research jobs",
     teaching: "3rd letter, teaching jobs",
     extra: "Only when picked by hand",
+    delegate: "Assistant: submits letters for others",
   };
 
   function blankState() {
@@ -88,6 +90,15 @@
     async getQueue(w) {
       const writerId = wid(w);
       const s = readState();
+      const me = s.writers.find((x) => x.id === writerId);
+      if (me && me.role === "delegate") {
+        const handled = s.writers.filter((x) => x.via === me.id), ids = handled.map((x) => x.id);
+        const apps = s.apps.filter((a) => (a.writers || []).some((id) => ids.includes(id)));
+        const done = {}, platforms = {};
+        apps.forEach((a) => ids.forEach((id) => { const p = s.progress[a.id + "|" + id]; if (p) done[a.id + "|" + id] = p.at; }));
+        Object.keys(s.platforms).forEach((k) => { if (ids.includes(k.split("|")[0])) platforms[k] = s.platforms[k].at; });
+        return { writer: me, delegate: true, handled, apps, done, platforms, settings: { me: s.settings.me, myEmail: s.settings.myEmail } };
+      }
       const writer = s.writers.find((w) => w.id === writerId);
       const apps = s.apps.filter((a) => (a.writers || []).includes(writerId));
       const done = {}, platforms = {};
@@ -95,13 +106,13 @@
       Object.keys(s.platforms).forEach((k) => { const [w, m] = k.split("|"); if (w === writerId) platforms[m] = s.platforms[k].at; });
       return { writer, apps, done, platforms, settings: { me: s.settings.me, myEmail: s.settings.myEmail } };
     },
-    async setDone(appId, w, val) {
-      const s = readState(); const k = appId + "|" + wid(w);
+    async setDone(appId, w, val, forId) {
+      const s = readState(); const k = appId + "|" + (forId || wid(w));
       if (val) s.progress[k] = { at: new Date().toISOString() }; else delete s.progress[k];
       writeState(s);
     },
-    async setPlatformDone(w, method, val) {
-      const s = readState(); const k = wid(w) + "|" + method;
+    async setPlatformDone(w, method, val, forId) {
+      const s = readState(); const k = (forId || wid(w)) + "|" + method;
       if (val) s.platforms[k] = { at: new Date().toISOString() }; else delete s.platforms[k];
       writeState(s);
     },
@@ -170,8 +181,8 @@
     getAll() { return call("getAll"); },
     findWriter(email) { return call("findWriter", { email }); },
     getQueue(w) { return call("getQueue", { email: w.email }); },
-    setDone(appId, w, val) { return call("setDone", { email: w.email, appId, val: !!val }); },
-    setPlatformDone(w, method, val) { return call("setPlatformDone", { email: w.email, method, val: !!val }); },
+    setDone(appId, w, val, forId) { return call("setDone", { email: w.email, appId, val: !!val, writerId: forId || "" }); },
+    setPlatformDone(w, method, val, forId) { return call("setPlatformDone", { email: w.email, method, val: !!val, writerId: forId || "" }); },
     saveApp(app) { return call("saveApp", { app }); },
     deleteApp(id) { return call("deleteApp", { id }); },
     saveWriters(list) { return call("saveWriters", { list }); },
@@ -450,9 +461,104 @@
     return H.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
   }
 
+  /* ---------- assistant (delegate) + letter versions ----------- */
+
+  // The person who actually submits a writer's letters: their assistant if they have one, else themselves.
+  function recipientOf(writers, w) {
+    const d = w.via && writers.find((x) => x.id === w.via && x.role === "delegate");
+    return d || w;
+  }
+  function versionsOf(w) { return String((w && w.versions) || "").split(",").map((x) => x.trim()).filter(Boolean); }
+  function autoVersion(app, w) {
+    const vs = versionsOf(w); if (!vs.length) return "";
+    const pick = (re) => vs.find((v) => re.test(v));
+    if (app.teaching) return pick(/teach/i) || vs[0];
+    if (!app.section || /nonacademic/i.test(app.section)) return pick(/industry/i) || vs[0];
+    return pick(/research/i) || pick(/academic/i) || vs[0];
+  }
+  function versionFor(app, w) { return ((app.versions || {})[w.id]) || autoVersion(app, w); }
+  function letterLabel(app, w) { const v = versionFor(app, w); return (w.first || w.name) + (v ? " — " + v + " letter" : ""); }
+
+  // How the assistant should send letters for this application (plain text).
+  function delegateHow(app, me) {
+    const m = app.method;
+    if (m === "email") return "email each letter as a PDF to " + (app.email || "?") + ' (subject: "' + subjectFor(app, me) + '")';
+    if (m === "portal") return "upload through the link " + app.institution + "'s system emails to each writer";
+    if (m === "ajo") return "upload through the AcademicJobsOnline request email sent to each writer";
+    if (m === "joe") return "covered by each writer's one-time upload to AEA JOE";
+    if (m === "ejm") return "covered by each writer's one-time upload to EconJobMarket";
+    if (m === "interfolio") return "covered by each writer's one-time upload to my Interfolio Dossier";
+    if (m === "other") return "see the page for instructions";
+    return "";
+  }
+
+  // items: [{ app, writers: [writer objects] }]
+  function composeDelegateEmail(state, delegate, items, opts) {
+    opts = opts || {};
+    const me = state.settings.me || "Blaize Giangiulio";
+    const byDate = (a, b) => (a.app.deadline || "9999").localeCompare(b.app.deadline || "9999");
+    const kind = (a) => (METHODS[a.method] || METHODS.other).kind;
+    const groups = { each: [], once: [], later: [] };
+    items.slice().sort(byDate).forEach((it) => { const k = kind(it.app); (groups[k] || groups.each).push(it); });
+    const line = (it) => "  • " + (it.app.deadline ? fmtDay(it.app.deadline) : "no deadline") + " — " + it.app.institution + ", " + it.app.title +
+      "\n      Letters: " + it.writers.map((w) => letterLabel(it.app, w)).join("; ") +
+      (delegateHow(it.app, me) ? "\n      → " + delegateHow(it.app, me) : "");
+    const L = [(delegate.greet || ("Dear " + delegate.first)) + ",", ""];
+    const n = items.length;
+    L.push(opts.intro || (n === 1 ? "I've submitted one more application that needs letters." : "I've submitted " + n + " more applications that need letters."));
+    L.push("");
+    if (groups.each.length) { L.push("LETTERS TO SEND (" + groups.each.length + ")"); groups.each.forEach((it) => L.push(line(it))); L.push(""); }
+    if (groups.once.length) { L.push("COVERED BY ONE-TIME PLATFORM UPLOADS (" + groups.once.length + ")"); groups.once.forEach((it) => L.push(line(it))); L.push(""); }
+    if (groups.later.length) { L.push("NOTHING TO SEND YET — only if I'm shortlisted (" + groups.later.length + ")"); groups.later.forEach((it) => L.push(line(it))); L.push(""); }
+    const url = state.settings.portalUrl;
+    if (url) {
+      L.push("Your page lists each application with a box to tick for each writer once their letter is sent:");
+      L.push(url + (url.includes("?") ? "&" : "?") + "u=" + encodeURIComponent(delegate.email));
+      L.push("");
+    }
+    L.push("Thank you so much for your help with these.");
+    L.push(""); L.push("Best,"); L.push(me.split(" ")[0]);
+    const first = (groups.each[0] || groups.once[0] || groups.later[0] || {}).app || {};
+    const subj = n === 1
+      ? "Letters to send: " + first.institution + (first.deadline ? " (due " + fmtDay(first.deadline) + ")" : "")
+      : n + " applications need letters" + (first.deadline ? " — first due " + fmtDay(first.deadline) : "");
+    return { to: delegate.email, subject: subj, body: L.join("\n") };
+  }
+
+  function composeDelegateNudge(state, delegate, app, writers, now) {
+    now = now || new Date();
+    const me = state.settings.me || "Blaize Giangiulio";
+    const h = nyHour(now);
+    const greet = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    const many = writers.length > 1;
+    const what = app.institution + " (" + app.title + ")";
+    const d = parseDay(app.deadline);
+    const n = d ? Math.round((d - nyToday(now)) / 864e5) : null;
+    const long = d ? d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) : "";
+    const are = many ? "are" : "is", it = many ? "them" : "it";
+    let due, tail;
+    if (n === null) { due = ""; tail = ""; }
+    else if (n > 1) { due = " " + are + " due in " + n + " days, on " + long; tail = " due in " + n + " days"; }
+    else if (n === 1) { due = " " + are + " due tomorrow, " + long; tail = " due tomorrow"; }
+    else if (n === 0) { due = " " + are + " due today, " + long; tail = " due today"; }
+    else { due = " were due on " + long; tail = ""; }
+    const L = [greet + ", " + (delegate.first || delegate.name) + ",", ""];
+    L.push("This is a gentle reminder that the following letter" + (many ? "s" : "") + " for " + what + due + ":");
+    writers.forEach((w) => L.push("  • " + letterLabel(app, w)));
+    if (n !== null && n < 0) { L.push(""); L.push("If it's still possible to send " + it + ", that would be wonderful."); }
+    const how = delegateHow(app, me);
+    if (how) { L.push(""); L.push(how.charAt(0).toUpperCase() + how.slice(1) + "."); }
+    const url = state.settings.portalUrl;
+    if (url) { L.push(""); L.push("Your page has the details, and a box to tick for each letter once it's sent:"); L.push(url + (url.includes("?") ? "&" : "?") + "u=" + encodeURIComponent(delegate.email)); }
+    L.push(""); L.push("If you've already sent " + it + ", thank you, and please ignore this note.");
+    L.push(""); L.push("Best,"); L.push(me.split(" ")[0]);
+    return { to: delegate.email, subject: "Gentle reminder: letter" + (many ? "s" : "") + " for " + app.institution + tail, body: L.join("\n") };
+  }
+
   window.LP = {
     Backend, METHODS, METHOD_ORDER, ROLE_LABEL, DEFAULT_WRITERS,
-    stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge,
+    stepsFor, subjectFor, suggestWriters, composeEmail, composeNudge, composeDelegateEmail, composeDelegateNudge,
+    recipientOf, versionsOf, autoVersion, versionFor, letterLabel, delegateHow,
     parseDay, daysUntil, fmtDay, dueInfo,
     esc, norm, uid, safeUrl, copyText, mailto, gmail, sha256, blankState,
   };

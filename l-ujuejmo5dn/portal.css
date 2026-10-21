@@ -223,3 +223,8 @@ table.writers input, table.writers select { font-size: 0.88rem; padding: 0.35rem
   table.grid .hide-sm { display: none; }
   nav.tabs button { margin: 0 0.35rem; }
 }
+
+/* assistant view: several writers' ticks per row */
+.checks { display: flex; gap: 0.55rem; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; max-width: 13rem; }
+.what .letters { font-family: var(--sans); font-size: 0.82rem; color: var(--accent); margin: -0.2rem 0 0.35rem; }
+.how ol ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }

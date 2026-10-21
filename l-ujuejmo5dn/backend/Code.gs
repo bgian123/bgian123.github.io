@@ -23,18 +23,20 @@ const ADMIN_KEY = "CHANGE-ME-to-a-long-password";
 const TABS = {
   Applications: ["id", "joeId", "institution", "title", "department", "location", "section", "deadline", "deadlineNote",
     "method", "url", "email", "subject", "instructions", "note", "adText", "letters", "teaching", "writers",
-    "appliedOn", "createdAt", "updatedAt"],
-  Writers: ["id", "name", "first", "greet", "email", "role"],
+    "appliedOn", "createdAt", "updatedAt", "versions"],
+  // via: id of the assistant who submits this writer's letters (e.g. "sykes"); versions: comma list of letter variants
+  Writers: ["id", "name", "first", "greet", "email", "role", "via", "versions"],
   Progress: ["key", "type", "at"],          // type: done | platform | notified | reminded
   Settings: ["key", "value"],
   EmailLog: ["at", "to", "cc", "subject", "body"],
 };
 
 const DEFAULT_WRITERS = [
-  { id: "yotov", name: "Yoto V. Yotov", first: "Yoto", greet: "Dear Yoto", email: "yvy23@drexel.edu", role: "core" },
-  { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core" },
-  { id: "kwon", name: "Ohyun Kwon", first: "Ohyun", greet: "Dear Ohyun", email: "theekwonomist@gmail.com", role: "research" },
-  { id: "stehr", name: "Mark Stehr", first: "Mark", greet: "Dear Mark", email: "ms424@drexel.edu", role: "teaching" },
+  { id: "yotov", name: "Yoto V. Yotov", first: "Yoto", greet: "Dear Yoto", email: "yvy23@drexel.edu", role: "core", via: "sykes", versions: "Industry, Academic (research), Academic (teaching)" },
+  { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core", via: "sykes", versions: "" },
+  { id: "kwon", name: "Ohyun Kwon", first: "Ohyun", greet: "Dear Ohyun", email: "theekwonomist@gmail.com", role: "research", via: "", versions: "" },
+  { id: "stehr", name: "Mark Stehr", first: "Mark", greet: "Dear Mark", email: "ms424@drexel.edu", role: "teaching", via: "sykes", versions: "" },
+  { id: "sykes", name: "Michele Sykes", first: "Michele", greet: "Dear Michele", email: "mms25@drexel.edu", role: "delegate", via: "", versions: "" },
 ];
 const DEFAULT_SETTINGS = { me: "Blaize Giangiulio", myEmail: "bg654@drexel.edu", portalUrl: "", cc: "bg654@drexel.edu" };
 const ONCE_METHODS = ["joe", "ejm", "interfolio"];
@@ -103,6 +105,17 @@ function handle_(req) {
       }
       case "getQueue": {
         const w = writerByEmail_(st, req.email) || fail_("Unknown writer", "nowriter");
+        if (w.role === "delegate") {
+          // the assistant sees every application that needs a letter from someone she submits for
+          const handled = st.writers.filter(function (x) { return x.via === w.id; });
+          const ids = handled.map(function (x) { return x.id; });
+          const dapps = st.apps.filter(function (x) { return x.writers.some(function (id) { return ids.indexOf(id) >= 0; }); });
+          const ddone = {}, dplat = {};
+          dapps.forEach(function (x) { ids.forEach(function (id) { const p = st.progress[x.id + "|" + id]; if (p) ddone[x.id + "|" + id] = p.at; }); });
+          Object.keys(st.platforms).forEach(function (k) { if (ids.indexOf(k.split("|")[0]) >= 0) dplat[k] = st.platforms[k].at; });
+          return { writer: publicWriter_(w), delegate: true, handled: handled.map(publicWriter_), apps: dapps, done: ddone, platforms: dplat,
+            settings: { me: st.settings.me, myEmail: st.settings.myEmail } };
+        }
         const apps = st.apps.filter(function (x) { return x.writers.indexOf(w.id) >= 0; });
         const done = {}, platforms = {};
         apps.forEach(function (x) { const p = st.progress[x.id + "|" + w.id]; if (p) done[x.id] = p.at; });
@@ -111,16 +124,16 @@ function handle_(req) {
           settings: { me: st.settings.me, myEmail: st.settings.myEmail } };
       }
       case "setDone": {
-        const w = writerByEmail_(st, req.email) || fail_("Unknown writer", "nowriter");
+        const t = actingFor_(st, req);
         const app = st.apps.filter(function (x) { return x.id === req.appId; })[0];
-        if (!app || app.writers.indexOf(w.id) < 0) fail_("That application isn't on your list.");
-        setProgress_(app.id + "|" + w.id, "done", !!req.val);
+        if (!app || app.writers.indexOf(t.id) < 0) fail_("That application isn't on your list.");
+        setProgress_(app.id + "|" + t.id, "done", !!req.val);
         return true;
       }
       case "setPlatformDone": {
-        const w = writerByEmail_(st, req.email) || fail_("Unknown writer", "nowriter");
+        const t = actingFor_(st, req);
         if (ONCE_METHODS.indexOf(req.method) < 0) fail_("Unknown platform");
-        setProgress_(w.id + "|" + req.method, "platform", !!req.val);
+        setProgress_(t.id + "|" + req.method, "platform", !!req.val);
         return true;
       }
 
@@ -146,7 +159,7 @@ function handle_(req) {
       case "saveWriters": {
         const list = (req.list || []).map(function (w) {
           return { id: String(w.id || ""), name: String(w.name || ""), first: String(w.first || ""), greet: String(w.greet || ""),
-            email: String(w.email || "").trim(), role: String(w.role || "extra") };
+            email: String(w.email || "").trim(), role: String(w.role || "extra"), via: String(w.via || ""), versions: String(w.versions || "") };
         }).filter(function (w) { return w.id; });
         writeTab_("Writers", list);
         return true;
@@ -209,6 +222,7 @@ function load_() {
     r.letters = Number(r.letters) || 0;
     r.teaching = r.teaching === "true" || r.teaching === "TRUE";
     r.writers = r.writers ? String(r.writers).split(",").map(function (x) { return x.trim(); }).filter(String) : [];
+    try { r.versions = r.versions ? JSON.parse(r.versions) : {}; } catch (e) { r.versions = {}; }
     return r;
   });
   readTab_("Progress").forEach(function (r) {
@@ -227,6 +241,7 @@ function appRow_(app) {
   TABS.Applications.forEach(function (k) { r[k] = app[k]; });
   r.writers = (app.writers || []).join(",");
   r.teaching = app.teaching ? "true" : "false";
+  r.versions = JSON.stringify(app.versions || {});
   return r;
 }
 
@@ -261,6 +276,7 @@ function readTab_(name) {
 function writeTab_(name, rows) {
   const sh = sheet_(name);
   const cols = TABS[name];
+  sh.getRange(1, 1, 1, cols.length).setValues([cols]);   // keeps headers current when columns are added
   const last = sh.getLastRow();
   if (last > 1) sh.getRange(2, 1, last - 1, cols.length).clearContent();
   if (!rows.length) return;
@@ -282,4 +298,13 @@ function writerByEmail_(st, email) {
   if (!e) return null;
   return st.writers.filter(function (w) { return norm_(w.email) === e; })[0] || null;
 }
-function publicWriter_(w) { return { id: w.id, name: w.name, first: w.first, email: w.email }; }
+function publicWriter_(w) { return { id: w.id, name: w.name, first: w.first, email: w.email, role: w.role, versions: w.versions || "" }; }
+
+// The writer a request acts for: yourself, or (for an assistant) someone whose letters you submit.
+function actingFor_(st, req) {
+  const me = writerByEmail_(st, req.email) || fail_("Unknown writer", "nowriter");
+  if (!req.writerId || req.writerId === me.id) return me;
+  const t = st.writers.filter(function (x) { return x.id === req.writerId; })[0];
+  if (!t || t.via !== me.id) fail_("You can't tick letters for that writer.");
+  return t;
+}

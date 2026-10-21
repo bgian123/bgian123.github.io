@@ -1,7 +1,7 @@
 /* Writer portal: sign in by email, see queue, tick letters off. */
 (function () {
   "use strict";
-  const { Backend, METHODS, stepsFor, subjectFor, fmtDay, dueInfo, esc, safeUrl, copyText, mailto } = LP;
+  const { Backend, METHODS, stepsFor, subjectFor, fmtDay, dueInfo, esc, safeUrl, copyText, mailto, letterLabel, delegateHow } = LP;
   const $ = (id) => document.getElementById(id);
   const ME_KEY = "letterPortal.me";
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
@@ -108,6 +108,8 @@
     }
     $("hello").textContent = "Welcome, " + (current.first || current.name);
     $("whoEmail").textContent = current.email;
+    if (q.delegate) { renderDelegate(q, me); return; }
+    $("introText").textContent = "Everything that needs your letter, soonest first. Tick each one once it's sent and it moves out of the way.";
 
     const apps = q.apps.slice().sort(byDate);
     const kind = (a) => (METHODS[a.method] || METHODS.other).kind;
@@ -175,6 +177,113 @@
     $("groups").innerHTML = gh;
   }
 
+  /* ---------- assistant view (submits letters for several writers) ---- */
+
+  function delegateHowPanel(app, ws, me) {
+    let h = '<div class="how" id="how-' + esc(app.id) + '"' + (openHow.has(app.id) ? "" : " hidden") + ">";
+    if (app.note) h += '<div class="note"><b>Note from Blaize</b>' + esc(app.note) + "</div>";
+    const m = app.method;
+    h += "<ol>";
+    if (m === "email") {
+      h += "<li>Email each letter below as a PDF attachment to <strong>" + esc(app.email || "(address missing — ask me)") + "</strong> (one email per letter is safest):<ul>" +
+        ws.map((w) => "<li>" + esc(letterLabel(app, w)) + "</li>").join("") + "</ul></li>";
+      h += "<li>Subject line: <em>" + esc(subjectFor(app, me)) + "</em></li>";
+    } else if (m === "portal" || m === "ajo") {
+      h += "<li>" + esc(m === "ajo" ? "AcademicJobsOnline" : app.institution + "'s application system") + " sends an upload link to each writer's email. Ask the writer to forward it to you (or use it directly if it came to you).</li>";
+      h += "<li>Upload these letters as PDFs through those links:<ul>" + ws.map((w) => "<li>" + esc(letterLabel(app, w)) + "</li>").join("") + "</ul></li>";
+    } else {
+      const how = delegateHow(app, me);
+      if (how) h += "<li>" + esc(how.charAt(0).toUpperCase() + how.slice(1)) + ".</li>";
+      h += "<li>Letters:<ul>" + ws.map((w) => "<li>" + esc(letterLabel(app, w)) + "</li>").join("") + "</ul></li>";
+    }
+    if (app.instructions) h += "<li>" + esc(app.instructions) + "</li>";
+    h += "</ol>";
+    const btns = [];
+    if (m === "email" && app.email) {
+      btns.push('<a class="btn" href="' + esc(mailto(app.email, subjectFor(app, me), "Please find attached a letter of recommendation for " + me + ", who has applied for the " + app.title + " position at " + app.institution + ".")) + '">Compose email</a>');
+      btns.push('<button class="btn ghost small" type="button" data-copy="' + esc(app.email) + '">Copy address</button>');
+      btns.push('<button class="btn ghost small" type="button" data-copy="' + esc(subjectFor(app, me)) + '">Copy subject</button>');
+    }
+    const url = safeUrl(app.url);
+    if (url && (METHODS[m] || {}).kind !== "once") btns.push('<a class="btn ghost" href="' + esc(url) + '" target="_blank" rel="noopener">Job posting ↗</a>');
+    if (btns.length) h += '<div class="btns">' + btns.join("") + "</div>";
+    const facts = [app.department, app.location, app.deadlineNote].filter(Boolean).map(esc);
+    if (facts.length) h += '<p class="kv">' + facts.join(" · ") + "</p>";
+    if (app.adText) h += "<details><summary>What the job ad says about letters</summary><blockquote>" + esc(app.adText) + "</blockquote></details>";
+    return h + "</div>";
+  }
+
+  function delegateRow(app, ws, doneMap, me, opts) {
+    const M = METHODS[app.method] || METHODS.other;
+    const checks = opts.check ? '<div class="checks">' + ws.map((w) => {
+      const on = !!doneMap[app.id + "|" + w.id];
+      return checkBtn(on, esc(w.first || w.name), 'data-done="' + esc(app.id) + '" data-for="' + esc(w.id) + '" title="' + esc(letterLabel(app, w)) + (on ? " — sent" : " — tick once sent") + '"');
+    }).join("") + "</div>" : "";
+    return '<li data-app="' + esc(app.id) + '"><div class="row">' + dueBlock(app) +
+      '<div class="what"><p class="inst">' + esc(app.institution) + '</p><p class="ttl">' + esc(app.title) + "</p>" +
+      '<p class="letters">' + ws.map((w) => esc(letterLabel(app, w))).join(" · ") + "</p>" +
+      '<div class="meta"><span class="tag' + (M.kind === "once" ? " gold" : "") + '">' + esc(M.label) + "</span>" +
+      '<button class="toggle-how" type="button" data-how="' + esc(app.id) + '" aria-expanded="' + openHow.has(app.id) + '">' + (opts.done ? "Details" : "How to submit") + "</button></div></div>" +
+      checks + "</div>" + delegateHowPanel(app, ws, me) + "</li>";
+  }
+
+  function renderDelegate(q, me) {
+    $("introText").textContent = "Every letter you're submitting for me, soonest first. Tick each writer's box once their letter is sent; their own pages update too.";
+    const handled = q.handled || [];
+    const wsFor = (a) => handled.filter((w) => (a.writers || []).includes(w.id));
+    const kind = (a) => (METHODS[a.method] || METHODS.other).kind;
+    const apps = q.apps.slice().sort(byDate);
+    const todo = [], done = [], later = [], plat = {};
+    let lettersOpen = 0, lettersDone = 0;
+    apps.forEach((a) => {
+      const ws = wsFor(a); if (!ws.length) return;
+      const k = kind(a);
+      if (k === "once") { (plat[a.method] = plat[a.method] || []).push(a); return; }
+      if (k === "later") { later.push(a); return; }
+      if (k === "none") return;
+      const open = ws.filter((w) => !q.done[a.id + "|" + w.id]).length;
+      lettersOpen += open; lettersDone += ws.length - open;
+      (open ? todo : done).push(a);
+    });
+
+    // one-time platform uploads: one tick per writer
+    let ph = "", platOpen = 0;
+    Object.keys(plat).forEach((m) => {
+      const list = plat[m], M = METHODS[m];
+      const ws = handled.filter((w) => list.some((a) => (a.writers || []).includes(w.id)));
+      const allDone = ws.every((w) => q.platforms[w.id + "|" + m]);
+      platOpen += ws.filter((w) => !q.platforms[w.id + "|" + m]).length;
+      const listHtml = "<ul>" + list.map((a) => "<li>" + esc(a.institution) + " — " + esc(a.title) + (a.deadline ? " (" + esc(fmtDay(a.deadline)) + ")" : "") +
+        ": " + wsFor(a).map((w) => esc(letterLabel(a, w))).join(", ") + "</li>").join("") + "</ul>";
+      ph += '<div class="platform' + (allDone ? " done" : "") + '"><div class="ptitle"><div><span class="k">' + (allDone ? esc(M.label) + " · all uploaded" : "Upload once per writer") + "</span>" +
+        "<strong>" + esc(M.label) + " — covers " + list.length + " application" + (list.length > 1 ? "s" : "") + "</strong></div>" +
+        '<div class="checks">' + ws.map((w) => checkBtn(!!q.platforms[w.id + "|" + m], esc(w.first || w.name), 'data-platform="' + m + '" data-for="' + esc(w.id) + '"')).join("") + "</div></div>" +
+        (allDone ? "" : "<p>One upload of each writer's letter to " + esc(M.platform) + " covers every application there, including any I add later. Tick a writer once theirs is uploaded.</p>" +
+          '<div class="btns"><a class="btn ghost small" href="' + esc(M.home) + '" target="_blank" rel="noopener">Open ' + esc(M.label) + " ↗</a></div>") +
+        '<details style="margin-top:0.6rem"><summary>Show the ' + list.length + " application" + (list.length > 1 ? "s" : "") + "</summary>" + listHtml + "</details></div>";
+    });
+    $("platforms").innerHTML = ph;
+
+    const upcoming = todo.filter((a) => a.deadline && dueInfo(a.deadline).n >= 0)[0];
+    const overdue = todo.filter((a) => a.deadline && dueInfo(a.deadline).n < 0).length;
+    $("stats").innerHTML =
+      '<div><div class="n' + (overdue ? " alert" : "") + '">' + (lettersOpen + platOpen) + '</div><div class="l">Letters to send' + (overdue ? " · " + overdue + " past due" : "") + "</div></div>" +
+      '<div><div class="n">' + (upcoming ? esc(fmtDay(upcoming.deadline)) : "—") + '</div><div class="l">Next deadline</div></div>' +
+      '<div><div class="n">' + lettersDone + '</div><div class="l">Sent</div></div>';
+
+    $("todoAside").textContent = todo.length ? todo.length + " application" + (todo.length > 1 ? "s" : "") : "";
+    $("todo").innerHTML = todo.length
+      ? todo.map((a) => delegateRow(a, wsFor(a), q.done, me, { check: true })).join("")
+      : '<li class="allclear">' + (apps.length ? "All caught up. Thank you!" : "Nothing yet. I'll email you when I submit an application that needs letters.") + "</li>";
+
+    let gh = "";
+    if (later.length) gh += '<details class="group"><summary>Nothing to send yet — only if I\'m shortlisted · <b>' + later.length + "</b></summary>" +
+      '<ul class="queue">' + later.map((a) => delegateRow(a, wsFor(a), q.done, me, {})).join("") + "</ul></details>";
+    if (done.length) gh += '<details class="group"><summary>All letters sent · <b>' + done.length + "</b></summary>" +
+      '<ul class="queue">' + done.map((a) => delegateRow(a, wsFor(a), q.done, me, { check: true, done: true })).join("") + "</ul></details>";
+    $("groups").innerHTML = gh;
+  }
+
   /* ---------- events ------------------------------------------- */
 
   document.addEventListener("click", async (e) => {
@@ -192,7 +301,7 @@
     if (d && current) {
       const on = d.getAttribute("aria-pressed") !== "true";
       d.disabled = true; d.style.opacity = "0.5";
-      try { await Backend.setDone(d.dataset.done, current, on); }
+      try { await Backend.setDone(d.dataset.done, current, on, d.dataset.for); }
       catch (err) { alert(err.message); }
       openHow.delete(d.dataset.done);
       await render();
@@ -202,7 +311,7 @@
     if (p && current) {
       const on = p.getAttribute("aria-pressed") !== "true";
       p.disabled = true; p.style.opacity = "0.5";
-      try { await Backend.setPlatformDone(current, p.dataset.platform, on); }
+      try { await Backend.setPlatformDone(current, p.dataset.platform, on, p.dataset.for); }
       catch (err) { alert(err.message); }
       await render();
     }
