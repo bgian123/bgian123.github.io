@@ -234,7 +234,7 @@
     $("pMethod").innerHTML = '<option value="">Letters via: any</option>' + METHOD_ORDER.filter((m) => counts[m]).map((m) =>
       '<option value="' + m + '">' + esc(METHODS[m].label) + " (" + counts[m] + ")</option>").join("");
   }
-  ["pSearch", "pType", "pMethod", "pPast", "pHideApplied"].forEach((id) => $(id).addEventListener(id === "pSearch" ? "input" : "change", renderPostings));
+  ["pSearch", "pType", "pMethod", "pPast", "pHideApplied", "pPrio"].forEach((id) => $(id).addEventListener(id === "pSearch" ? "input" : "change", renderPostings));
 
   function renderPostings() {
     const q = $("pSearch").value.trim().toLowerCase();
@@ -246,6 +246,7 @@
       if (method && p.method !== method) return false;
       if (!showPast && p.deadline && dueInfo(p.deadline).n < 0) return false;
       if (hideApplied && applied[p.id]) return false;
+      if ($("pPrio").checked && !(p.priority && dueInfo(p.priority).n >= 0)) return false;
       if (q) {
         const hay = (p.institution + " " + p.title + " " + p.department + " " + p.location + " " + p.jel.join(" ") + " " + p.text).toLowerCase();
         if (!q.split(/\s+/).every((t) => hay.includes(t))) return false;
@@ -256,7 +257,8 @@
     let h = '<thead><tr><th>Deadline</th><th>Position</th><th>Letters via</th><th class="hide-sm">#</th><th></th></tr></thead><tbody>';
     rows.forEach((p) => {
       const a = applied[p.id];
-      h += "<tr" + (a ? ' class="applied"' : "") + "><td>" + dueCell(p.deadline) + "</td>" +
+      const prio = p.priority ? '<div class="prio" title="' + esc(p.priorityText) + '">Priority ' + esc(fmtDay(p.priority)) + "</div>" : "";
+      h += "<tr" + (a ? ' class="applied"' : "") + "><td>" + dueCell(p.deadline) + prio + "</td>" +
         '<td><button class="linkish" data-posting="' + esc(p.id) + '"><div class="inst">' + esc(p.institution) + "</div><div>" + esc(p.title) + "</div></button>" +
         '<div class="sub">' + esc([p.location, p.section.replace(/\s*\(.*\)/, "")].filter(Boolean).join(" · ")) + (p.teaching ? " · teaching-focused" : "") + "</div></td>" +
         "<td>" + tagHtml(p.method, p.confidence) + "</td>" +
@@ -279,7 +281,10 @@
     const method = p.method === "unknown" ? "other" : p.method;
     const letters = p.letters || (method === "none" ? 0 : 3);
     return { id: uid(), joeId: p.id, joeUrl: p.joeUrl, institution: p.institution, title: p.title, department: p.department, location: p.location,
-      section: p.section, deadline: p.deadline, deadlineNote: p.reviewNote || "", method, url: p.applyUrl || "", email: p.letterEmail || "",
+      section: p.section,
+      // a priority / full-consideration date earlier than JOE's deadline becomes the letter deadline
+      deadline: p.priority || p.deadline,
+      deadlineNote: p.priority ? "Priority consideration by " + fmtDay(p.priority, true) + (p.deadline ? "; final deadline " + fmtDay(p.deadline, true) : "") : (p.reviewNote || ""), method, url: p.applyUrl || "", email: p.letterEmail || "",
       subject: "", instructions: "", note: "", adText: p.letterText || "", letters, teaching: !!p.teaching,
       writers: suggestWriters(S.writers, letters, p.teaching), appliedOn: todayStr() };
   }

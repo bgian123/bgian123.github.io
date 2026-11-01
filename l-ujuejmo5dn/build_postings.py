@@ -81,6 +81,61 @@ REVIEW_RE = re.compile(
 )
 
 
+PRIO_SENT_RE = re.compile(
+    r"[^.\n]*\b(priority|full consideration|fully considered|preference will be given|guaranteed (full )?consideration|"
+    r"review of applications|applications will be reviewed|review will begin|reviews? begins?|begin(s)? reviewing|"
+    r"first review|early consideration|early flyouts?|encouraged to apply (by|before)|initial review)[^.\n]*", re.I)
+EXPLICIT_RE = re.compile(r"priority|full consideration|fully considered|preference|guaranteed|encouraged to apply|early flyout", re.I)
+MONTHS = {m: i + 1 for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
+
+
+def find_dates(t, export_year):
+    """Dates written as 'November 13, 2026', '13 November 2026', '11/13/2026' or without a year."""
+    import datetime as dt
+    found = []
+    def add(pos, y, mo, d):
+        if y is None:
+            y = export_year if mo >= 7 else export_year + 1
+        try:
+            found.append((pos, dt.date(y, mo, d)))
+        except ValueError:
+            pass
+    mon = r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?"
+    for m in re.finditer(r"\b" + mon + r"\s+(\d{1,2})(?!\d)(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?", t, re.I):
+        add(m.start(), int(m.group(3)) if m.group(3) else None, MONTHS[m.group(1)[:3].lower()], int(m.group(2)))
+    for m in re.finditer(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+" + mon + r"(?:,?\s*(\d{4}))?", t, re.I):
+        add(m.start(), int(m.group(3)) if m.group(3) else None, MONTHS[m.group(2)[:3].lower()], int(m.group(1)))
+    for m in re.finditer(r"\b(\d{1,2})/(\d{1,2})/(\d{2,4})\b", t):
+        y = int(m.group(3)); y = y + 2000 if y < 100 else y
+        add(m.start(), y, int(m.group(1)), int(m.group(2)))
+    return sorted(found)  # [(position, date)]
+
+
+def priority_date(text, deadline, export_year):
+    """Earliest 'priority / full consideration / review begins' date, when it tells you more than the deadline does."""
+    import datetime as dt
+    dl = dt.date.fromisoformat(deadline) if deadline else None
+    for m in PRIO_SENT_RE.finditer(text):
+        sent = re.sub(r"\s+", " ", m.group(0)).strip()
+        ds = [(pos, d) for pos, d in find_dates(sent, export_year) if dt.date(export_year, 7, 1) <= d <= dt.date(export_year + 1, 12, 31)]
+        if not ds:
+            continue
+        if dl and any(d < dl for _, d in ds):
+            ds = [(pos, d) for pos, d in ds if d < dl]   # a date before the deadline is the informative one
+        kw = EXPLICIT_RE.search(sent)
+        explicit = bool(kw)
+        # several dates in one sentence: take the one closest to the "priority / full consideration" wording
+        d = min(ds, key=lambda x: abs(x[0] - kw.start()))[1] if kw else min(d for _, d in ds)
+        if dl and d > dl:
+            continue
+        if dl and d == dl and not re.search(r"priority", sent, re.I):
+            continue
+        if not explicit and dl is not None and d >= dl:
+            continue
+        return d.isoformat(), sent[:260]
+    return "", ""
+
+
 def clean(s):
     if not s:
         return ""
@@ -226,6 +281,7 @@ def main():
         if info["letters"] == 0 and "Academic" in section:
             info["letters"] = 3  # academic ads that are silent on letters almost always want 3 (via JOE)
         review = REVIEW_RE.search(text)
+        prio, prio_text = priority_date(text, dl, int(year) if year.isdigit() else 2026)
         out.append({
             "id": p.get("jp_id"),
             "joeUrl": ("https://www.aeaweb.org/joe/listing.php?JOE_ID=" + joe_prefix + p.get("jp_id")) if joe_prefix else "",
@@ -235,6 +291,8 @@ def main():
             "section": section,
             "deadline": dl,
             "reviewNote": review.group(0).strip()[:220] if review else "",
+            "priority": prio,
+            "priorityText": prio_text,
             "location": " / ".join(dict.fromkeys(locs)),
             "jel": [clean(j.findtext("jc_code")) for j in p.iter("jel_class")],
             "teaching": bool(TEACH_TITLE_RE.search(title) or TEACH_TEXT_RE.search(text)),
