@@ -131,8 +131,9 @@
   // Applications a writer hasn't been told about. Skips Interfolio, "no letters", and
   // upload-once platforms the writer has already ticked (nothing for them to do).
   function pendingFor(w) {
+    // never include a letter that's already been ticked as sent (by the writer or by Michele)
     return S.apps.filter((a) => (a.writers || []).includes(w.id) && !S.notified[a.id + "|" + w.id] && kindOf(a) !== "none" &&
-      !silent(a) && !(kindOf(a) === "once" && S.platforms[w.id + "|" + a.method]));
+      !silent(a) && writerStatus(a, w) !== "done" && !S.progress[a.id + "|" + w.id]);
   }
   // writers on this application whose letter isn't sent/covered yet
   function outstanding(a) {
@@ -161,8 +162,8 @@
         '<span class="sans small muted">' + (last ? "Last nudged " + esc(fmtDay(last.slice(0, 10))) : "Not nudged yet") + "</span></header>" +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(m.subject) + '"></label>' +
         '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="11">' + esc(m.body) + "</textarea></label>" +
-        '<div class="btns" style="margin-top:0.6rem">' + (w.role === "delegate" ? OUTLOOK_BTNS + "</div></div>" : "") +
-        (w.role === "delegate" ? "" : (live
+        '<div class="btns" style="margin-top:0.6rem">' + (byHand(w) ? OUTLOOK_BTNS + "</div></div>" : "") +
+        (byHand(w) ? "" : (live
           ? (blocked(w) ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed">Send — on hold</button>'
                         : '<button class="btn" type="button" data-nsend="server">Send nudge' + (S.settings.cc ? " (cc " + esc(S.settings.cc) + ")" : "") + "</button>")
           : '<button class="btn" type="button" data-nsend="gmail">Open in Gmail ↗</button><button class="btn ghost" type="button" data-nsend="mailto">Open in mail app</button>') +
@@ -209,6 +210,11 @@
   // Michele's messages are sent by hand from Outlook: copy buttons + an Outlook compose link instead of Send.
   function outlookUrl(to, subj, body) {
     return "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(to || "") + "&subject=" + encodeURIComponent(subj || "") + "&body=" + encodeURIComponent(body || "");
+  }
+  // People you email yourself from Outlook (Writers tab → "Send by hand"). Kept in settings so the backend needn't change.
+  function byHand(w) {
+    const list = S.settings.outlookFor == null || S.settings.outlookFor === "" && S.settings.outlookSet !== "1" ? ["sykes", "syropoulos"] : String(S.settings.outlookFor).split(",");
+    return !!w && list.includes(w.id);
   }
   const OUTLOOK_BTNS = '<button class="btn" type="button" data-ol="copy">Copy message</button>' +
     '<button class="btn ghost" type="button" data-ol="subj">Copy subject</button>' +
@@ -477,7 +483,7 @@
     $("notifyCallout").innerHTML = (Backend.mode === "test"
       ? "<strong>Test mode:</strong> each email opens pre-filled in Gmail or your mail app, and you press send. Then click <em>Mark as emailed</em> so it isn't sent twice. Once the Google Sheet backend is connected, the Send button emails them for you."
       : "Each <strong>Send</strong> emails the writer from your Gmail" + (S.settings.cc ? ", with " + esc(S.settings.cc) + " on cc" : "") +
-        ". Interfolio applications never appear here, because Interfolio asks for the letter itself. Neither do JOE or EJM applications once the writer has ticked that upload. Michele's messages are for you to copy into Outlook and send yourself.") + holdNote;
+        ". Interfolio applications never appear here, because Interfolio asks for the letter itself. Neither do JOE or EJM applications once the writer has ticked that upload. Cards marked “by hand” on the Writers tab (Michele, Costas) are for you to copy into Outlook and send yourself.") + holdNote;
     // One card per person who receives email: writers who submit their own letters, and assistants
     // (who get everything for the writers they submit for). Pairs are {app, w}.
     const remindable = (a, w) => S.notified[a.id + "|" + w.id] && writerStatus(a, w) !== "done" && kindOf(a) === "each" &&
@@ -534,8 +540,8 @@
         (nP && nR ? '<label class="inline sans small muted" style="display:inline-flex;gap:0.35rem;margin-top:0.4rem"><input type="checkbox" data-rem> Also remind about the ' + nR + " open application" + (nR > 1 ? "s" : "") + " due soon</label>" : "") +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(mail.subject) + '"></label>' +
         '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="14">' + esc(mail.body) + "</textarea></label>" +
-        (c.delegate ? '<div class="btns" style="margin-top:0.6rem">' + OUTLOOK_BTNS + "</div></div>" : "") +
-        (c.delegate ? "" : '<div class="btns" style="margin-top:0.6rem">' +
+        (byHand(c.r) ? '<div class="btns" style="margin-top:0.6rem">' + OUTLOOK_BTNS + "</div></div>" : "") +
+        (byHand(c.r) ? "" : '<div class="btns" style="margin-top:0.6rem">' +
         (Backend.mode === "live"
           ? (blocked(c.r)
             ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed" title="Emails are on hold (Data tab)">Send — on hold</button>'
@@ -590,7 +596,7 @@
     const delegates = S.writers.filter((w) => w.role === "delegate");
     const viaOpts = (w) => '<option value="">Themselves</option>' + delegates.filter((d) => d.id !== w.id).map((d) =>
       '<option value="' + esc(d.id) + '"' + (w.via === d.id ? " selected" : "") + ">" + esc(d.name) + "</option>").join("");
-    $("wTable").innerHTML = "<thead><tr><th>Full name</th><th>Called</th><th>Email greeting</th><th>Email (sign-in)</th><th>Role</th><th>Letters sent by</th><th>Letter versions</th><th></th></tr></thead><tbody>" +
+    $("wTable").innerHTML = "<thead><tr><th>Full name</th><th>Called</th><th>Email greeting</th><th>Email (sign-in)</th><th>Role</th><th>Letters sent by</th><th>Letter versions</th><th title='Copy the message into Outlook instead of sending from Gmail'>Send by hand</th><th></th></tr></thead><tbody>" +
       S.writers.map((w, i) => '<tr data-row="' + i + '" data-id="' + esc(w.id) + '">' +
         '<td><input type="text" data-k="name" value="' + esc(w.name) + '"></td>' +
         '<td><input type="text" data-k="first" value="' + esc(w.first) + '"></td>' +
@@ -599,6 +605,7 @@
         '<td><select data-k="role">' + roleOpts(w.role) + "</select></td>" +
         '<td>' + (w.role === "delegate" ? '<input type="hidden" data-k="via" value=""><span class="sub">—</span>' : '<select data-k="via">' + viaOpts(w) + "</select>") + "</td>" +
         '<td><input type="text" data-k="versions" value="' + esc(w.versions || "") + '" placeholder="optional, comma-separated" title="e.g. Industry, Academic (research), Academic (teaching)"></td>' +
+        '<td style="text-align:center"><input type="checkbox" data-hand' + (byHand(w) ? " checked" : "") + ' aria-label="Send by hand from Outlook"></td>' +
         '<td class="act"><a class="btn quiet small" href="index.html?u=' + encodeURIComponent(w.email || "") + '" target="_blank" rel="noopener">View as ↗</a></td></tr>').join("") + "</tbody>";
   }
   function readWriters() {
@@ -614,7 +621,10 @@
     const list = readWriters();
     const emails = list.map((w) => w.email.toLowerCase()).filter(Boolean);
     if (new Set(emails).size !== emails.length) { toast("Two writers share an email address"); return; }
-    await Backend.saveWriters(list); toast("Writers saved"); refresh();
+    await Backend.saveWriters(list);
+    const hand = [...$("wTable").querySelectorAll("tr[data-row]")].filter((tr) => tr.querySelector("[data-hand]").checked).map((tr) => tr.dataset.id);
+    await Backend.saveSettings({ outlookFor: hand.join(","), outlookSet: "1" });
+    toast("Writers saved"); refresh();
   });
   $("wAdd").addEventListener("click", () => {
     S.writers = readWriters().concat([{ id: "w" + uid().slice(1, 8), name: "", first: "", greet: "", email: "", role: "extra" }]);
