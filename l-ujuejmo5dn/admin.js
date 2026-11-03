@@ -47,7 +47,7 @@
     if (S.settings.delegateSetup === "done") return;
     if (!S.writers.some((w) => w.via)) {
       const list = S.writers.map((w) => Object.assign({}, w, {
-        via: ["yotov", "syropoulos", "stehr"].includes(w.id) ? "sykes" : "",
+        via: ["yotov", "stehr"].includes(w.id) ? "sykes" : "",
         versions: w.id === "yotov" && !w.versions ? "Industry, Academic (research), Academic (teaching)" : (w.versions || ""),
       }));
       if (!list.some((w) => w.id === "sykes")) list.push({ id: "sykes", name: "Michele Sykes", first: "Michele", greet: "Dear Michele", email: "mms25@drexel.edu", role: "delegate", via: "", versions: "" });
@@ -60,9 +60,23 @@
     await load();
   }
 
+  // Nov 2026: Costas handles his own letters again (no longer through Michele). Runs once.
+  async function costasDirect() {
+    if (S.settings.costasDirect === "done") return;
+    const c = S.writers.find((w) => w.id === "syropoulos");
+    if (c && c.via) {
+      await Backend.saveWriters(S.writers.map((w) => (w.id === "syropoulos" ? Object.assign({}, w, { via: "" }) : w)));
+      await load();
+      if (S.writers.find((w) => w.id === "syropoulos").via) return;   // didn't stick; try again next time
+    }
+    await Backend.saveSettings({ costasDirect: "done" });
+    await load();
+  }
+
   async function start() {
     await load();
     await ensureDelegate();
+    await costasDirect();
     $("gate").hidden = true; $("main").hidden = false; $("tabs").hidden = false;
     fillMethodFilter();
     switchTab(S.apps.length ? "apps" : "postings");
@@ -147,18 +161,29 @@
         '<span class="sans small muted">' + (last ? "Last nudged " + esc(fmtDay(last.slice(0, 10))) : "Not nudged yet") + "</span></header>" +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(m.subject) + '"></label>' +
         '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="11">' + esc(m.body) + "</textarea></label>" +
-        '<div class="btns" style="margin-top:0.6rem">' +
-        (live
+        '<div class="btns" style="margin-top:0.6rem">' + (w.role === "delegate" ? OUTLOOK_BTNS + "</div></div>" : "") +
+        (w.role === "delegate" ? "" : (live
           ? (blocked(w) ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed">Send — on hold</button>'
                         : '<button class="btn" type="button" data-nsend="server">Send nudge' + (S.settings.cc ? " (cc " + esc(S.settings.cc) + ")" : "") + "</button>")
           : '<button class="btn" type="button" data-nsend="gmail">Open in Gmail ↗</button><button class="btn ghost" type="button" data-nsend="mailto">Open in mail app</button>') +
-        '<button class="btn ghost" type="button" data-nsend="copy">Copy text</button></div></div>';
+        '<button class="btn ghost" type="button" data-nsend="copy">Copy text</button></div></div>');
     });
     $("drawer").innerHTML = h;
     $("drawer").querySelectorAll("[data-nudge-writer]").forEach((card) => {
       const w = S.writers.find((x) => x.id === card.dataset.nudgeWriter);
       const covers = groups.find((g) => g.r.id === w.id).ws;
       card.addEventListener("click", async (e) => {
+        const ol = e.target.closest("[data-ol]");
+        if (ol) {
+          const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
+          if (ol.dataset.ol === "copy") { copyText(body, ol); return; }
+          if (ol.dataset.ol === "subj") { copyText(subj, ol); return; }
+          if (ol.dataset.ol === "open") window.open(outlookUrl(w.email, subj, body), "_blank", "noopener");
+          for (const x of covers) await Backend.markReminded(x.id, [a.id]);
+          card.querySelector("header .muted:last-child").textContent = "Nudged just now";
+          toast(ol.dataset.ol === "open" ? "Marked as nudged; press Send in Outlook" : "Marked as nudged"); load();
+          return;
+        }
         const b = e.target.closest("[data-nsend]"); if (!b) return;
         const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
         if (b.dataset.nsend === "copy") { copyText("To: " + w.email + (S.settings.cc ? "\nCc: " + S.settings.cc : "") + "\nSubject: " + subj + "\n\n" + body, b); return; }
@@ -180,6 +205,15 @@
     });
     $("scrim").hidden = false; $("drawer").hidden = false; $("drawer").scrollTop = 0;
   }
+
+  // Michele's messages are sent by hand from Outlook: copy buttons + an Outlook compose link instead of Send.
+  function outlookUrl(to, subj, body) {
+    return "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(to || "") + "&subject=" + encodeURIComponent(subj || "") + "&body=" + encodeURIComponent(body || "");
+  }
+  const OUTLOOK_BTNS = '<button class="btn" type="button" data-ol="copy">Copy message</button>' +
+    '<button class="btn ghost" type="button" data-ol="subj">Copy subject</button>' +
+    '<button class="btn ghost" type="button" data-ol="open">Open in Outlook ↗</button>' +
+    '<button class="btn quiet" type="button" data-ol="mark" style="margin-left:auto">Mark as sent</button>';
 
   function recent(iso, days) { return !!iso && (Date.now() - new Date(iso).getTime()) < days * 864e5; }
   function appliedJoeIds() { const m = {}; S.apps.forEach((a) => { if (a.joeId) m[a.joeId] = a; }); return m; }
@@ -443,7 +477,7 @@
     $("notifyCallout").innerHTML = (Backend.mode === "test"
       ? "<strong>Test mode:</strong> each email opens pre-filled in Gmail or your mail app, and you press send. Then click <em>Mark as emailed</em> so it isn't sent twice. Once the Google Sheet backend is connected, the Send button emails them for you."
       : "Each <strong>Send</strong> emails the writer from your Gmail" + (S.settings.cc ? ", with " + esc(S.settings.cc) + " on cc" : "") +
-        ". Interfolio applications never appear here, because Interfolio asks for the letter itself. Neither do JOE or EJM applications once the writer has ticked that upload.") + holdNote;
+        ". Interfolio applications never appear here, because Interfolio asks for the letter itself. Neither do JOE or EJM applications once the writer has ticked that upload. Michele's messages are for you to copy into Outlook and send yourself.") + holdNote;
     // One card per person who receives email: writers who submit their own letters, and assistants
     // (who get everything for the writers they submit for). Pairs are {app, w}.
     const remindable = (a, w) => S.notified[a.id + "|" + w.id] && writerStatus(a, w) !== "done" && kindOf(a) === "each" &&
@@ -500,7 +534,8 @@
         (nP && nR ? '<label class="inline sans small muted" style="display:inline-flex;gap:0.35rem;margin-top:0.4rem"><input type="checkbox" data-rem> Also remind about the ' + nR + " open application" + (nR > 1 ? "s" : "") + " due soon</label>" : "") +
         '<label class="field" style="margin:0.6rem 0 0"><span>Subject</span><input type="text" data-subj value="' + esc(mail.subject) + '"></label>' +
         '<label class="field" style="margin:0.6rem 0 0"><span>Message</span><textarea data-body rows="14">' + esc(mail.body) + "</textarea></label>" +
-        '<div class="btns" style="margin-top:0.6rem">' +
+        (c.delegate ? '<div class="btns" style="margin-top:0.6rem">' + OUTLOOK_BTNS + "</div></div>" : "") +
+        (c.delegate ? "" : '<div class="btns" style="margin-top:0.6rem">' +
         (Backend.mode === "live"
           ? (blocked(c.r)
             ? '<button class="btn" type="button" disabled style="opacity:0.45;cursor:not-allowed" title="Emails are on hold (Data tab)">Send — on hold</button>'
@@ -508,7 +543,7 @@
           : '<button class="btn" type="button" data-send="gmail">Open in Gmail ↗</button>' +
             '<button class="btn ghost" type="button" data-send="mailto">Open in mail app</button>') +
         '<button class="btn ghost" type="button" data-send="copy">Copy text</button>' +
-        '<button class="btn quiet" type="button" data-mark style="margin-left:auto">Mark as emailed</button></div></div>';
+        '<button class="btn quiet" type="button" data-mark style="margin-left:auto">Mark as emailed</button></div></div>');
     }).join("");
     $("notifyList").querySelectorAll(".notify-card").forEach((card) => {
       const c = out[+card.dataset.i], w = c.r;
@@ -517,6 +552,15 @@
       card.addEventListener("click", async (e) => {
         const subj = card.querySelector("[data-subj]").value, body = card.querySelector("[data-body]").value;
         const remSent = !c.pend.length || (rem && rem.checked);
+        const ol = e.target.closest("[data-ol]");
+        if (ol) {
+          if (ol.dataset.ol === "copy") { copyText(body, ol); return; }
+          if (ol.dataset.ol === "subj") { copyText(subj, ol); return; }
+          if (ol.dataset.ol === "open") window.open(outlookUrl(w.email, subj, body), "_blank", "noopener");
+          await markDone(c, remSent);
+          toast(ol.dataset.ol === "open" ? "Marked as emailed; press Send in Outlook" : "Marked as emailed"); refresh();
+          return;
+        }
         const s = e.target.closest("[data-send]");
         if (s) {
           if (!w.email) { toast("Add " + w.first + "'s email on the Writers tab first"); return; }

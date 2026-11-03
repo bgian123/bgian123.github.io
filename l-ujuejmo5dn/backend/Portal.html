@@ -239,6 +239,9 @@ table.writers input, table.writers select { font-size: 0.88rem; padding: 0.35rem
 .what .letters { font-family: var(--sans); font-size: 0.82rem; color: var(--accent); margin: -0.2rem 0 0.35rem; }
 .how ol ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
 
+/* priority / full-consideration date earlier than the JOE deadline */
+.prio { font-family: var(--sans); font-size: 0.7rem; font-weight: 700; color: var(--warn); margin-top: 0.25rem; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -311,7 +314,7 @@ table.writers input, table.writers select { font-size: 0.88rem; padding: 0.35rem
 
   const DEFAULT_WRITERS = [
     { id: "yotov", name: "Yoto V. Yotov", first: "Yoto", greet: "Dear Yoto", email: "yvy23@drexel.edu", role: "core", via: "sykes", versions: "Industry, Academic (research), Academic (teaching)" },
-    { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core", via: "sykes", versions: "" },
+    { id: "syropoulos", name: "Constantinos Syropoulos", first: "Costas", greet: "Dear Costas", email: "cas86@drexel.edu", role: "core", via: "", versions: "" },
     { id: "kwon", name: "Ohyun Kwon", first: "Ohyun", greet: "Dear Ohyun", email: "theekwonomist@gmail.com", role: "research", via: "", versions: "" },
     { id: "stehr", name: "Mark Stehr", first: "Mark", greet: "Dear Mark", email: "ms424@drexel.edu", role: "teaching", via: "sykes", versions: "" },
     { id: "sykes", name: "Michele Sykes", first: "Michele", greet: "Dear Michele", email: "mms25@drexel.edu", role: "delegate", via: "", versions: "" },
@@ -823,7 +826,8 @@ table.writers input, table.writers select { font-size: 0.88rem; padding: 0.35rem
     const line = (it) => "  • " + (it.app.deadline ? fmtDay(it.app.deadline) : "no deadline") + " — " + it.app.institution + ", " + it.app.title +
       "\n      Letters: " + it.writers.map((w) => letterLabel(it.app, w)).join("; ") +
       (delegateHow(it.app, me) ? "\n      → " + delegateHow(it.app, me) : "");
-    const L = [(delegate.greet || ("Dear " + delegate.first)) + ",", ""];
+    const hh = nyHour(new Date());
+    const L = [(hh < 12 ? "Good morning" : hh < 17 ? "Good afternoon" : "Good evening") + ", " + (delegate.first || delegate.name) + "!", ""];
     const n = items.length;
     L.push(opts.intro || (n === 1 ? "I've submitted one more application that needs letters." : "I've submitted " + n + " more applications that need letters."));
     L.push("");
@@ -861,8 +865,8 @@ table.writers input, table.writers select { font-size: 0.88rem; padding: 0.35rem
     else if (n > 1) { due = " " + are + " due in " + n + " days, on " + long; tail = " due in " + n + " days"; }
     else if (n === 1) { due = " " + are + " due tomorrow, " + long; tail = " due tomorrow"; }
     else if (n === 0) { due = " " + are + " due today, " + long; tail = " due today"; }
-    else { due = " were due on " + long; tail = ""; }
-    const L = [greet + ", " + (delegate.first || delegate.name) + ",", ""];
+    else { due = (many ? " were" : " was") + " due on " + long; tail = ""; }
+    const L = [greet + ", " + (delegate.first || delegate.name) + "!", ""];
     L.push("This is a gentle reminder that the following letter" + (many ? "s" : "") + " for " + what + due + ":");
     writers.forEach((w) => L.push("  • " + letterLabel(app, w)));
     if (n !== null && n < 0) { L.push(""); L.push("If it's still possible to send " + it + ", that would be wonderful."); }
